@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+		<record id="view_partner_form_wineries" model="ir.ui.view">
+			<field name="name">res.partner.form.wineries</field>
+			<field name="model">res.partner</field>
+			<field name="inherit_id" ref="partner_abn_acn.view_partner_form_abn_acn"/>
+			<field name="arch" type="xml">
+				<field name='name' position='before'>
+					<field name='active' invisible='True'/>
+					<field name='reactivate' attrs="{'invisible' : [('active', '=', True)]}"/>
+					<newline/>
+				</field>
+				<field name='supplier' position='after'>
+					<field name='winery'/>
+				</field>
+				<xpath expr="//page[@string='Internal Notes']" position="before">
+					<page string="Winery">
+						<group>
+							<group>
+								<field name="wine_company_name" />
+								<field name="wine_prod_organic_wine"/>
+								<field name="wine_cellar_door"/>
+							</group>
+							<group>
+								<field name="wine_gi_zone" />
+								<field name="wine_gi_region" />
+								<field name="wine_gi_subregion" />
+							</group>
+							<group>
+								<field name="wine_vineyards" nolabel="1"/>
+								<field name="wine_site_facilities" nolabel="1"/>
+							</group>
+						</group>
+					</page>
+				</xpath>
+				<xpath expr="//group/field[@name='email']" position="after">
+					<field name="url"/>
+				</xpath>
+			</field>
+		</record>
+		<record id="view_partner_tree_winery" model="ir.ui.view">
+			<field name="name">res.partner.tree.winery</field>
+			<field name="model">res.partner</field>
+			<field name="inherit_id" ref="base.view_partner_tree" />
+			<field name="arch" type="xml">
+					<field name="name" position="before">
+						<field name="winery" invisible="1"/>
+					</field>
+			</field>
+		</record>
+		<record id="filter_partner_form_wineries" model="ir.ui.view">
+			<field name="name">res.partner.filter.wineries</field>
+			<field name="model">res.partner</field>
+			<field name="inherit_id" ref="base.view_res_partner_filter"/>
+			<field name="arch" type="xml">
+				<field name='name' position='before'>
+					<filter string="Signed Up Wineries" name="wineries" icon="terp-personal" domain="[('winery','=',1)]" help="Winery Partners who have Signed Up"/>
+					<filter string="Non Winery Partners" name="non-wineries" icon="terp-personal" domain="[('winery','=',0)]" help="Partners who are not Signed Up Wineries"/>
+					<separator orientation="vertical"/>
+				</field>
+			</field>
+		</record>
+		<record id="base.action_partner_form" model="ir.actions.act_window">
+			<field name="name">Customers</field>
+			<field name="type">ir.actions.act_window</field>
+			<field name="res_model">res.partner</field>
+			<field name="view_type">form</field>
+			<field name="view_mode">kanban</field>
+			<field name="context">{"search_default_customer":1, "search_default_wineries":0}</field>
+			<field name="search_view_id" ref="base.view_res_partner_filter"/>
+			<field name="help">A customer is an entity you do business with, like a company or an organization. A customer can have several contacts or addresses which are the people working for this company. You can use the history tab, to follow all transactions related to a customer: sales order, emails, opportunities, claims, etc. If you use the email gateway, the Outlook or the Thunderbird plugin, don't forget to register emails to each contact so that the gateway will automatically attach incoming emails to the right partner.</field>
+		</record>
+		<record id="base.action_partner_customer_form" model="ir.actions.act_window">
+			<field name="name">Customers</field>
+			<field name="type">ir.actions.act_window</field>
+			<field name="res_model">res.partner</field>
+			<field name="view_type">form</field>
+			<field name="domain">['|', ('customer','=',1), ('winery','=',1)]</field>
+			<field name="context">{'default_customer':1, 'search_default_customer':1, 'search_default_wineries':0}</field>
+			<field name="filter" eval="True"/>
+		</record>
+        <record id="view_partner_address_form_wineries" model="ir.ui.view">
+            <field name="name">res.partner.form.wineries</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <field name="email" position="after">
+                	<field name="url"/>
+                </field>
+            </field>
+        </record>
+        <record id="view_partner_address_simple_form_wineries" model="ir.ui.view">
+            <field name="name">res.partner.simple.wineries</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_simple_form"/>
+            <field name="arch" type="xml">
+                <field name="email" position="after">
+                	<field name="url"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</openerp>
+
+
