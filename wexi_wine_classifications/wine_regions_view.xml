@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<openerp>
+	<data>
+		<record model='ir.ui.view' id='wine_regions_view_form'>
+			<field name='name'>Wine Regions - Form View</field>
+			<field name='model'>wexi.wine.region</field>
+			<field name='type'>form</field>
+			<field name='arch' type='xml'>
+				<form string="Wine Regions">
+					<field name='name'/>
+				</form>
+			</field>
+		</record>
+		
+		
+		<record model='ir.ui.view' id='wine_regions_view_tree'>
+			<field name='name'>Wine Regions - Tree View</field>
+			<field name='model'>wexi.wine.region</field>
+			<field name='type'>tree</field>
+			<field name='arch' type='xml'>
+				<tree string="Wine Regions">
+					<field name='name'/>
+				</tree>
+			</field>
+		</record>
+	
+	
+	
+		<record model='ir.actions.act_window' id='wine_regions_action'>
+			<field name='name'>Wine Regions</field>
+			<field name='res_model'>wexi.wine.region</field>
+			<field name='view_type'>form</field>
+			<field name='view_mode'>tree,form</field>
+		</record>
+
+		<menuitem id="menu_wexi_wine_regions_sales" name="Wine Regions" action="wine_regions_action" parent="product.prod_config_main" groups="group_wexi_wine_classifications_mnt" sequence="20"/>
+		<menuitem id="menu_wexi_wine_regions_stock" name="Wine Regions" action="wine_regions_action" parent="stock.menu_product_in_config_stock" groups="group_wexi_wine_classifications_mnt" sequence="17"/>
+		<menuitem id="menu_wexi_wine_regions_purchase" name="Wine Regions" action="wine_regions_action" parent="purchase.menu_product_in_config_purchase" groups="group_wexi_wine_classifications_mnt" sequence="17"/>
+		
+	</data>
+
+
+
+</openerp>
