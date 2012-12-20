@@ -80,27 +80,27 @@
 			<field name="context">{'default_customer':1, 'search_default_customer':1, 'search_default_wineries':1}</field>
 			<field name="filter" eval="True"/>
 		</record>
-        <record id="view_partner_address_form_wineries" model="ir.ui.view">
-            <field name="name">res.partner.form.wineries</field>
-            <field name="model">res.partner</field>
-            <field name="inherit_id" ref="base.view_partner_form"/>
-            <field name="arch" type="xml">
-                <field name="email" position="after">
-                	<field name="url"/>
-                </field>
-            </field>
-        </record>
-        <record id="view_partner_address_simple_form_wineries" model="ir.ui.view">
-            <field name="name">res.partner.simple.wineries</field>
-            <field name="model">res.partner</field>
-            <field name="inherit_id" ref="base.view_partner_simple_form"/>
-            <field name="arch" type="xml">
-                <field name="email" position="after">
-                	<field name="url"/>
-                </field>
-            </field>
-        </record>
-    </data>
+		<record id="view_partner_address_form_wineries" model="ir.ui.view">
+			<field name="name">res.partner.form.wineries</field>
+			<field name="model">res.partner</field>
+			<field name="inherit_id" ref="base.view_partner_form"/>
+			<field name="arch" type="xml">
+				<field name="email" position="after">
+					<field name="url"/>
+				</field>
+			</field>
+		</record>
+		<record id="view_partner_address_simple_form_wineries" model="ir.ui.view">
+			<field name="name">res.partner.simple.wineries</field>
+			<field name="model">res.partner</field>
+			<field name="inherit_id" ref="base.view_partner_simple_form"/>
+			<field name="arch" type="xml">
+				<field name="email" position="after">
+					<field name="url"/>
+				</field>
+			</field>
+		</record>
+	</data>
 </openerp>
 
 

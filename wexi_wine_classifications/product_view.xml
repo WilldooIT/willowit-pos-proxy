@@ -8,21 +8,22 @@
 			<field name='inherit_id' ref='product.product_normal_form_view'/>
 			
 			<field name="arch" type="xml">
-				<xpath expr="//form[@string='Product']/group[position()=1]" position="attributes">
+				<!--<xpath expr="//form[@string='Product']/group[position()=1]" position="attributes">
 					<attribute name="col">8</attribute>
-				</xpath>
+				</xpath> -->
 				
 				
 <!--				index for position is 1 based, not 0 based.-->
-				<xpath expr="//form[@string='Product']/group[position()=1]/group[position()=2]" position = "after">
-					<group colspan="2" col="2">
-						<separator string="Specifications" colspan="2"/>
-						<field name = 'is_wine' on_change='on_change_is_wine(is_wine, region_id, type_id, stored_region_id, stored_type_id)'/>
-						<field name = 'region_id' attrs="{'readonly' : [('is_wine', '!=', True)],}"/>
-						<field name = 'type_id' attrs="{'readonly' : [('is_wine', '!=', True)],}"/>
-						<field name = 'stored_region_id' invisible='1'/>
-						<field name = 'stored_type_id' invisible='1'/>
-					</group>
+				<xpath  expr="//page[@string='Inventory']"  position="after">
+					<page string="Wine Specifications" >
+						<group col="2">
+							<field name = 'is_wine' on_change='on_change_is_wine(is_wine, region_id, type_id, stored_region_id, stored_type_id)'/>
+							<field name = 'region_id' attrs="{'readonly' : [('is_wine', '!=', True)],}"/>
+							<field name = 'type_id' attrs="{'readonly' : [('is_wine', '!=', True)],}"/>
+							<field name = 'stored_region_id' invisible='1'/>
+							<field name = 'stored_type_id' invisible='1'/>
+						</group>
+					</page>
 				</xpath>
 			</field>
 		</record>

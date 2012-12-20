@@ -14,7 +14,6 @@
     'data': [
              "security/wine_classifications_security.xml", "security/ir.model.access.csv",
              "product_view.xml", "wine_regions_view.xml", "wine_types_view.xml",
-             "data/wexi.wine.type.csv",
              ],
     "demo": [],
     "test": [],
