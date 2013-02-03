@@ -1,0 +1,13 @@
+id,name,code,parent_id:id,notprintable,sign
+0,AU GST,0,,,1
+04,Net GST to be paid/reclaimed,04,0,FALSE,1
+06,GST on Sales and other outputs,06,04,FALSE,1
+08,GST reclaimed on purchases,08,04,FALSE,-1
+09,WET Collected,09,04,FALSE,-1
+10,Total value of sales ex GST (G1),10,0,FALSE,0
+12,Export Sales (G2),12,0,FALSE,0
+14,Other GST free sales (G3),14,0,FALSE,0
+16,Capital Purchases (G10),16,0,FALSE,0
+18,Non-capital purchases (G11),18,0,FALSE,0
+20,Exempt Purchases,20,0,FALSE,0
+22,WET applicble purchases,22,0,FALSE,0
