@@ -177,7 +177,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 }).then(function(shops){
                     self.set('shop',shops[0]);
 
-                    return self.fetch('product.packaging',['ean','product_id']);
+                    return self.fetch('product.packaging',['ean','product_id','qty','pack_price','type_name']);
                 }).then(function(packagings){
                     self.db.add_packagings(packagings);
 
@@ -323,7 +323,10 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             }else if(parsed_ean.type === 'weight'){
                 selectedOrder.addProduct(new module.Product(product), {quantity:parsed_ean.value, merge:false});
             }else{
-                selectedOrder.addProduct(new module.Product(product));
+                selectedOrder.addProduct(new module.Product(product), {quantity:product.qty,
+																		pack_price:product.pack_price,
+																		type_name:product.type_name,
+																		merge:false});
             }
             return true;
         },
@@ -359,6 +362,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             this.quantityStr = '1';
             this.discount = 0;
             this.discountStr = '0';
+			this.discountNote = ""
             this.type = 'unit';
             this.selected = false;
         },
@@ -472,6 +476,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 unit_name:          this.get_unit().name,
                 price:              this.get_unit_price(),
                 discount:           this.get_discount(),
+				notice:				this.discountNote,
                 product_name:       this.get_product().get('name'),
                 price_display :     this.get_display_price(),
                 price_with_tax :    this.get_price_with_tax(),
@@ -634,7 +639,10 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             if(options.price !== undefined){
                 line.set_unit_price(options.price);
             }
-
+			if(options.pack_price !== undefined) {
+				line.set_unit_price(options.pack_price)
+				line.product.set("name", line.product.get("name") + " [as " + options.type_name + "]")
+			}
             var last_orderline = this.getLastOrderline();
             if( last_orderline && last_orderline.can_be_merged_with(line) && options.merge !== false){
                 last_orderline.merge(line);

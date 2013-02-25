@@ -521,7 +521,6 @@
             </ul>
         </li>
     </t>
-
     <t t-name="PaymentlineWidget">
         <tr class="paymentline">
             <td class="paymentline-type">

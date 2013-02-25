@@ -1,0 +1,41 @@
+I::@c_open_draw @c_b_on
+T::@company_name
+I::@c_b_off @c_f_big_off
+C::@company_website
+C::PH: @company_phone
+-::
+J::@date ::                       @ref
+J::Served By: ::          @salesperson
+-::
+&::@lines
+-::
+J::Subtotal:  ::             $@subtotal
+J::7% GST:    ::                  $@gst
+J::Total:     ::                $@total
+-::
+&::@payment_lines
+J::Total Paid: ::          $@total_paid
+J::Change:   ::                $@change
+N::
+N::
+N::
+I::@c_cut
+
+//lines
+N::
+L::@name
+R::@qty @unit @@ @price_unit : $@line_subtotal
+
+//payment_lines
+N::
+J::@journal ::                 $@amount
+
+//vfd_change
+J::Change:   ::                 $@change
+C:: See you next time!
+//vfd_clock
+C::Premium Importers
+J::@date :: @time
+//vfd_motd
+C::Welcome to
+C::Premium Importers
