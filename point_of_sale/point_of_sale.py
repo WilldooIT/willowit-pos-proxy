@@ -83,13 +83,16 @@ class pos_config(osv.osv):
     ]
 
     def copy(self, cr, uid, id, default=None, context=None):
+        br = self.browse(cr,uid,id,context=context)
         if not default:
             default = {}
         d = {
+            "name" : "%s (copy)" % br.name,
             'sequence_id' : False,
+            "session_ids":False,
         }
         d.update(default)
-        return super(pos_order, self).copy(cr, uid, id, d, context=context)
+        return super(pos_config, self).copy(cr, uid, id, d, context=context)
 
 
     def name_get(self, cr, uid, ids, context=None):
