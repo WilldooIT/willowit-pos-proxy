@@ -330,6 +330,13 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                 'client' : self.barcode_client_action ?  function(ean){ self.barcode_client_action(ean);  } : undefined ,
                 'discount': self.barcode_discount_action ? function(ean){ self.barcode_discount_action(ean); } : undefined,
             });
+            users = self.pos.get("user_list")
+            for(i in users) {
+                if(users[i].id == self.pos.get("uid")) {
+                    this.set_button_visibility(users[i])
+
+                }
+            }
         },
 
         // this method is called when the screen is closed to make place for a new screen. this is a good place
