@@ -12,6 +12,7 @@
                             <field name="journal_user"/>
                             <field name="amount_authorized_diff"/>
                             <field name="self_checkout_payment_method" />
+                            <field name="adjustment_payment_method" />
                         </group>
                     </page>
                 </xpath>

@@ -112,7 +112,7 @@
     left:0;
     top:0;
     width: 100%;
-    height: 34px;
+    height: 64px;
     margin:0;
     padding:0;
     color: gray;
@@ -163,8 +163,9 @@
 }
 
 .point-of-sale #rightheader button {
+	font-size: 2em;
     color: #273072;
-    height:27px;
+    height:57px;
     margin:3px;
     margin-right:0px;
     border: 1px solid #353A7E;
@@ -180,7 +181,9 @@
     margin-left:4px;
     margin-right:4px;
 }
-
+#reason-button {
+    display:none;
+}
 .point-of-sale div#order-selector {
     display: inline;
 }
@@ -189,6 +192,30 @@
 }
 .point-of-sale li.order-selector-button {
     display: inline;
+}
+.point-of-sale div#mode-selector {
+    display:inline;
+    width:150px;
+}
+#mode-selector button.active {
+    color:#000;
+    background-color: #c02c2c;
+    background-image: -webkit-gradient(linear, left top, left bottom, from(#df3f3f), to(#a21a1a));
+    background-image: -webkit-linear-gradient(top, #df3f3f, #a21a1a);
+    background-image: -moz-linear-gradient(top, #df3f3f, #a21a1a);
+    background-image: -ms-linear-gradient(top, #df3f3f, #a21a1a);
+    background-image: -o-linear-gradient(top, #df3f3f, #a21a1a);
+    background-image: linear-gradient(to bottom, #df3f3f, #a21a1a);
+    -moz-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 1px 1px rgba(155, 155, 155, 0.4) inset;
+    -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 1px 1px rgba(155, 155, 155, 0.4) inset;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), 0 1px 1px rgba(155, 155, 155, 0.4) inset;
+}
+#topheader.active {
+    background:#c11;
+    background: -webkit-gradient(linear, left top, left bottom, from(#c11), to(#a11));
+    background: -moz-linear-gradient(#c11, #a11);
+    background:  -ms-linear-gradient(#c11, #a11);
+    background:      linear-gradient(#c11, #a11);
 }
 .point-of-sale li.selected-order button {
     font-weight: 900;
@@ -254,7 +281,7 @@
 .point-of-sale #content {
     width: 100%;
     position: absolute;
-    top: 34px;
+    top: 64px;
     bottom: 0;
     background: #F0EEEE;
 }
@@ -323,7 +350,7 @@
 .point-of-sale #numpad {
     padding: 8px 8px 8px 4px;
     display: inline-block;
-    text-align: center;
+    text-align: right;
 }
 .point-of-sale #numpad button {
     height: 50px;
@@ -333,12 +360,16 @@
     vertical-align: middle;
     color: #555555;
     border-top: 1px solid #efefef;
+    text-align: center;
 }
 .point-of-sale .input-button {
     font-size: 24px;
 }
 .point-of-sale .mode-button, .point-of-sale #numpad-delete, .point-of-sale #numpad-minus {
     font-size: 14px;
+}
+.mode-button[data-mode="discount"],.mode-button[data-mode="price"] {
+    display:none;
 }
 
 /*  ********* The right pane contains the screens and headers ********* */
@@ -440,6 +471,7 @@
 
 .point-of-sale #categories {
     /*background:#f0f0f0;*/
+	height:64px;
     position: relative;
     background-image: url('../img/bg.png');
     border-bottom: 2px solid #e0e0e0;
@@ -485,9 +517,9 @@
 .point-of-sale .category-simple-button{
     position: relative;
     display: inline-block;
-    font-size: 14px;
+    font-size: 2em;
     margin-right:10px;
-    padding:5px;
+    padding:10px;
 
     cursor: pointer;
     border: 1px solid #cacaca;

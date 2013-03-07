@@ -62,9 +62,14 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
             this.state.bind('change:mode', this.changedMode, this);
             this.changedMode();
             this.$el.find('button#numpad-backspace').click(_.bind(this.clickDeleteLastChar, this));
-            this.$el.find('button#numpad-minus').click(_.bind(this.clickSwitchSign, this));
+            //this.$el.find('button#numpad-minus').click(_.bind(this.clickSwitchSign, this));
+            this.$el.find('button#reason-button').click(_.bind(this.clickReason, this));
             this.$el.find('button.number-char').click(_.bind(this.clickAppendNewChar, this));
             this.$el.find('button.mode-button').click(_.bind(this.clickChangeMode, this));
+
+        },
+        clickReason: function() {
+            this.pos_widget.screen_selector.show_popup("reason")
         },
         clickDeleteLastChar: function() {
             return this.state.deleteLastChar();
@@ -121,6 +126,20 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                 if (self.pos.get('selectedOrder').get('screen') === 'receipt'){  //TODO Why ?
                     console.warn('TODO should not get there...?');
                     return;
+                }
+                mode = self.pos.get("selectedOrder").transaction_mode
+                if(mode == "refund" || mode == "w_on" || mode == "w_off") {
+                    var allLinesCommented = true
+                    _.each(self.pos.get("selectedOrder").get("orderLines").models,function(line) {
+                        if(line.line_note === "" || line.line_note === undefined) {
+                            allLinesCommented = false
+                          
+                        }
+                    });
+                    if(!allLinesCommented) {
+                        alert("Not all lines are commented")
+                        return
+                    }
                 }
                 self.pos.get('selectedOrder').addPaymentLine(self.cashRegister);
                 self.pos_widget.screen_selector.set_current_screen('payment');
@@ -843,10 +862,13 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
             return self.pos.ready.done(function() {
                 self.build_currency_template();
                 self.renderElement();
-                
                 self.$('.neworder-button').click(function(){
                     self.pos.add_new_order();
                 });
+                self.$("#sale-mode-button").click(_.bind(self.saleButtonClicked,self));
+                self.$("#refund-mode-button").click(_.bind(self.refundButtonClicked,self));
+                self.$("#write-on-mode-button").click(_.bind(self.writeOnButtonClicked,self));
+                self.$("#write-off-mode-button").click(_.bind(self.writeOffButtonClicked,self));
                 
                 //when a new order is created, add an order button widget
                 self.pos.get('orders').bind('add', function(new_order){
@@ -859,6 +881,9 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                 }, self);
 
                 self.pos.get('orders').add(new module.Order({ pos: self.pos }));
+                self.pos.bind('change:selectedOrder', _.bind( function(pos) {
+                    self.refreshForMode(self);
+                }))
 
                 self.build_widgets();
 
@@ -876,6 +901,13 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     self.screen_selector.show_popup('error', 'Sorry, we could not find any PoS Configuration for this session');
                 }
             
+                users = self.pos.get("user_list")
+                for(i in users) {
+                    if(users[i].id == self.pos.get("uid")) {
+                        self.screen_selector.current_screen.set_button_visibility(users[i])
+                    }
+                }
+                self.refreshForMode(self); 
                 instance.web.unblockUI();
                 self.$('.loader').animate({opacity:0},1500,'swing',function(){self.$('.loader').hide();});
 
@@ -891,7 +923,71 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     }, self));
             });
         },
-        
+        refreshForMode:function(self) {
+            //var self = this
+            $("#mode-selector button").removeClass("active")
+            mode = self.pos.get("selectedOrder").transaction_mode
+            switch(mode) {
+                case "normal":
+                    $("#topheader").removeClass("active")
+                    $("#sale-mode-button").addClass("active")
+                    $("#reason-button").fadeOut()
+                    $("#paypad button[data-adjustment-method='true']").fadeOut()
+                    $("#paypad button[data-adjustment-method='false']").fadeIn()
+                    self.pos.get("selectedOrder").negateAllLines()    
+                    self.pos.trigger("change")
+                    break;
+                case "refund":
+                    $("#topheader").addClass("active")
+                    $("#refund-mode-button").addClass("active")
+                    $("#reason-button").fadeIn()
+                    $("#paypad button[data-adjustment-method='true']").fadeOut()
+                    $("#paypad button[data-adjustment-method='false']").fadeIn()
+                    self.pos.get("selectedOrder").negateAllLines()    
+                    self.pos.trigger("change")
+                    break;
+                case "w_on":
+                    $("#topheader").addClass("active")
+                    $("#write-on-mode-button").addClass("active")
+                    $("#reason-button").fadeIn()
+                    $("#paypad button").fadeOut()
+                    $("#paypad button[data-adjustment-method='true']").fadeIn()
+                    self.pos.get("selectedOrder").negateAllLines()    
+                    self.pos.trigger("change")
+                    break;
+                case "w_off":
+                    $("#topheader").addClass("active")
+                    $("#write-off-mode-button").addClass("active")
+                    $("#reason-button").fadeIn()
+                    $("#paypad button").fadeOut()
+                    $("#paypad button[data-adjustment-method='true']").fadeIn()
+                    self.pos.get("selectedOrder").negateAllLines()    
+                    self.pos.trigger("change")
+                    break;
+            }
+        },
+        saleButtonClicked:function() {
+            var self = this 
+            self.pos.get("selectedOrder").transaction_mode  = "normal" 
+            self.refreshForMode(self)
+
+        },
+        refundButtonClicked:function() {
+            var self = this
+            self.pos.get("selectedOrder").transaction_mode  = "refund" 
+            self.refreshForMode(self)
+        },
+        writeOnButtonClicked:function() {
+            var self = this
+            self.pos.get("selectedOrder").transaction_mode  = "w_on" 
+            self.refreshForMode(self)
+        },
+        writeOffButtonClicked:function() {
+            var self = this
+            self.pos.get("selectedOrder").transaction_mode  = "w_off" 
+            self.refreshForMode(self)
+
+        }, 
         // This method instantiates all the screens, widgets, etc. If you want to add new screens change the
         // startup screen, etc, override this method.
         build_widgets: function() {
@@ -921,6 +1017,8 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
             this.scale_screen.appendTo($('#rightpane'));
 
             // --------  Popups ---------
+            this.reason_popup = new module.OrderlineReasonWidget(this,{});
+            this.reason_popup.appendTo($(".point-of-sale"));
 
             this.help_popup = new module.HelpPopupWidget(this, {});
             this.help_popup.appendTo($('.point-of-sale'));
@@ -995,6 +1093,7 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     'welcome' : this.welcome_screen,
                 },
                 popup_set:{
+                    "reason": this.reason_popup,
                     'help': this.help_popup,
                     'error': this.error_popup,
                     'error-product': this.error_product_popup,

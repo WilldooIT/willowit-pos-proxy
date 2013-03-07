@@ -11,6 +11,12 @@
                     <span class="placeholder-UsernameWidget"></span>
                 </div>
                 <div id="rightheader">
+                    <div id="mode-selector">
+                        <button  id="sale-mode-button" class="active">Sale</button>
+                        <button  id="refund-mode-button">Refund</button>
+                        <button  id="write-off-mode-button">Write Off</button>
+                        <button  id="write-on-mode-button">Write On</button>
+                    </div>
                     <div id="order-selector">
                         <button class="neworder-button">+</button>
                         <ol id="orders"></ol>
@@ -78,22 +84,23 @@
 
     <t t-name="NumpadWidget">
         <div id="numpad">
+            <button class="mode-button" data-mode='quantity'>Qty</button>
             <button class="input-button number-char">1</button>
             <button class="input-button number-char">2</button>
             <button class="input-button number-char">3</button>
-            <button class="mode-button" data-mode='quantity'>Qty</button>
             <br />
+            <button class="mode-button" data-mode='discount'>Disc</button>
             <button class="input-button number-char">4</button>
             <button class="input-button number-char">5</button>
             <button class="input-button number-char">6</button>
-            <button class="mode-button" data-mode='discount'>Disc</button>
             <br />
+            <button class="mode-button" data-mode='price'>Price</button>
             <button class="input-button number-char">7</button>
             <button class="input-button number-char">8</button>
             <button class="input-button number-char">9</button>
-            <button class="mode-button" data-mode='price'>Price</button>
             <br />
-            <button class="input-button" id="numpad-minus" >+/-</button>
+            <!-- <button class="input-button" id="numpad-minus" >+/-</button> -->
+            <button class="input-button" id="reason-button">...</button>
             <button class="input-button number-char">0</button>
             <button class="input-button number-char">.</button>
             <button class="input-button" id="numpad-backspace">
@@ -370,6 +377,23 @@
         </div>
     </t>
 
+    <t t-name="OrderLineReasonWidget">
+        <div class="modal-dialog">
+            <div class="popup popup-help">
+                <p class="message"><t t-esc=" widget.message || 'Order line text' " /></p>
+                <p class="comment"><t t-esc=" widget.comment || 'Select a description from the box below.' "/></p>
+                <hr />
+                <!-- <textarea name="_orderline_text" id="orderline_text"><t t-esc=" widget.orderline_text || ''" /></textarea> -->
+                <select id="orderline_text">
+                    <option value="faulty product">Product was Faulty</option>
+                    <option value="change of mind">Change of Mind</option>
+                    <option value="wrong item">Purchased wrong Item</option>
+                </select>
+                <button id="reason-ok-button">Ok</button>
+            </div>
+        </div>
+    </t>
+
     <t t-name="ProductWidget">
         <li class='product'>
             <a href="#">
@@ -534,7 +558,7 @@
     </t>
 
     <t t-name="PaypadButtonWidget">
-        <button class="paypad-button" t-att-cash-register-id="widget.cashRegister.get('id')">
+        <button class="paypad-button" t-att-data-adjustment-method="widget.cashRegister.get('journal').adjustment_payment_method and 'true' or 'false'"  t-att-cash-register-id="widget.cashRegister.get('id')">
             <t t-esc="widget.cashRegister.get('journal').name"/>
         </button>
         <br />

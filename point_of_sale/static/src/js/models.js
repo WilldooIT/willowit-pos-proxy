@@ -34,6 +34,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
         initialize: function(session, attributes) {
             Backbone.Model.prototype.initialize.call(this, attributes);
             var  self = this;
+            this.refund_mode_active = false
             this.session = session;                 
             this.ready = $.Deferred();                          // used to notify the GUI that the PosModel has loaded all resources
             this.flush_mutex = new $.Mutex();                   // used to make sure the orders are sent to the server once at time
@@ -136,7 +137,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 }).then(function(packagings){
                     self.set('product.packaging',packagings);
                     
-                    return self.fetch('res.users', ['name','ean13'], [['ean13', '!=', false]]);
+                    return self.fetch('res.users', ['name','ean13',"can_refund","can_adjust","can_discount"], [['ean13', '!=', false]]);
                 }).then(function(users){
                     self.set('user_list',users);
 
@@ -188,7 +189,8 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                     return self.fetch(
                         'product.product', 
                         ['name', 'list_price','price','pos_categ_id', 'taxes_id', 'ean13', 
-                         'to_weight', 'uom_id', 'uos_id', 'uos_coeff', 'mes_type', 'description_sale', 'description'],
+                         'to_weight', 'uom_id', 'uos_id', 'uos_coeff', 'mes_type', 'description_sale', 'description',
+                         "discount_program_in_store_12","discount_program_in_store_6"],
                         [['sale_ok','=',true],['available_in_pos','=',true]],
                         {pricelist: self.get('shop').pricelist_id[0]} // context for price
                     );
@@ -326,7 +328,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 selectedOrder.addProduct(new module.Product(product), {quantity:product.qty,
 																		pack_price:product.pack_price,
 																		type_name:product.type_name,
-																		merge:false});
+																		merge:true});
             }
             return true;
         },
@@ -363,6 +365,8 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             this.discount = 0;
             this.discountStr = '0';
 			this.discountNote = ""
+            this.line_type_code = ""
+            this.line_note = ""
             this.type = 'unit';
             this.selected = false;
         },
@@ -390,10 +394,14 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             if(quantity === 'remove'){
                 this.order.removeOrderline(this);
                 return;
-            }else{
+            }else if(this.order.transaction_mode == "refund" || this.order.transaction_mode == "w_on") {
+                quant = 0 - Math.abs(quantity)
+                this.quantity    = quant;
+                this.quantityStr = '' + this.quantity;
+            } else {    
                 var quant = Math.max(parseFloat(quantity) || 0, 0);
                 var unit = this.get_unit();
-                if(unit){
+                if(unit && unit.rounding > 0){
                     this.quantity    = Math.max(unit.rounding, Math.round(quant / unit.rounding) * unit.rounding);
                     this.quantityStr = this.quantity.toFixed(Math.max(0,Math.ceil(Math.log(1.0 / unit.rounding) / Math.log(10))));
                 }else{
@@ -450,8 +458,8 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 return false;
             }else if(this.get_product_type() !== orderline.get_product_type()){
                 return false;
-            }else if(this.get_discount() > 0){             // we don't merge discounted orderlines
-                return false;
+            //}else if(this.get_discount() > 0){             // we don't merge discounted orderlines
+            //    return false;
             }else if(this.price !== orderline.price){
                 return false;
             }else{ 
@@ -459,7 +467,9 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             }
         },
         merge: function(orderline){
-            this.set_quantity(this.get_quantity() + orderline.get_quantity());
+                this.set_quantity(Math.abs(this.get_quantity()) + Math.abs(orderline.get_quantity()));
+                self = this.order
+                this.order.recalculateDiscount()
         },
         export_as_JSON: function() {
             return {
@@ -467,6 +477,8 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 price_unit: this.get_unit_price(),
                 discount: this.get_discount(),
                 product_id: this.get_product().get('id'),
+                line_type_code: this.line_type_code,
+                line_note: this.line_note
             };
         },
         //used to create a json of the ticket, to be sent to the printer
@@ -568,8 +580,15 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
         },
         //sets the amount of money on this payment line
         set_amount: function(value){
-            this.amount = parseFloat(value) || 0;
-            this.trigger('change');
+
+            mode = self.pos.get("selectedOrder").transaction_mode
+            if(mode == "refund" || mode == "w_on") {
+                this.amount =  0 - (parseFloat(value) || 0);
+                this.trigger('change');
+            } else {
+                this.amount = parseFloat(value) || 0;
+                this.trigger('change');
+            }
         },
         // returns the amount of money on this paymentline
         get_amount: function(){
@@ -621,6 +640,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             this.selected_orderline = undefined;
             this.screen_data = {};  // see ScreenSelector
             this.receipt_type = 'receipt';  // 'receipt' || 'invoice'
+            this.transaction_mode = "normal";
             return this;
         },
         generateUniqueId: function() {
@@ -632,7 +652,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             attr.pos = this.pos;
             attr.order = this;
             var line = new module.Orderline({}, {pos: this.pos, order: this, product: product});
-
+            line.line_type_code = this.transaction_mode && this.transaction_mode.toUpperCase() || "NORMAL"
             if(options.quantity !== undefined){
                 line.set_quantity(options.quantity);
             }
@@ -641,8 +661,9 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             }
 			if(options.pack_price !== undefined) {
 				line.set_unit_price(options.pack_price)
-				line.product.set("name", line.product.get("name") + " [as " + options.type_name + "]")
+				//line.product.set("name", line.product.get("name") + " [as " + options.type_name + "]")
 			}
+            
             var last_orderline = this.getLastOrderline();
             if( last_orderline && last_orderline.can_be_merged_with(line) && options.merge !== false){
                 last_orderline.merge(line);
@@ -650,6 +671,52 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 this.get('orderLines').add(line);
             }
             this.selectLine(this.getLastOrderline());
+            this.negateAllLines();
+            this.recalculateDiscount() 
+        },
+        negateAllLines: function() {
+            self = this
+            lines = this.get("orderLines")
+            _.each(lines.models,function(line) {
+                line.line_type_code = self.transaction_mode && self.transaction_mode.toUpperCase() || "NORMAL"
+                if(self.transaction_mode == "refund" || self.transaction_mode == "w_on") {
+                    line.set_quantity(0-Math.abs(line.quantity))
+                } else {
+                    line.set_quantity(Math.abs(line.quantity))
+                }
+            })
+        },
+        recalculateDiscount: function() {
+            lines = this.get("orderLines")
+            totalLinesQty12 = 0
+            totalLinesQty6 = 0
+            _.each(lines.models,function(line) {
+                if(line.product.get("discount_program_in_store_6")) {
+                    totalLinesQty6 += line.quantity
+                } 
+                if(line.product.get("discount_program_in_store_12")) {
+                    totalLinesQty12 += line.quantity
+                } 
+            })
+            if(totalLinesQty12 >= 12) {
+                discount = 0.2
+                _.each(lines.models,function(line) {
+                    if(line.product.get("discount_program_in_store_12")) {
+                        line.set_discount(discount * 100)
+                    }
+                })
+            } else if(totalLinesQty6 >= 6) {
+                discount = 0.1
+                _.each(lines.models,function(line) {
+                    if(line.product.get("discount_program_in_store_6")) {
+                        line.set_discount(discount * 100)
+                    }
+                })
+            } else {
+                _.each(lines.models,function(line) {
+                    line.set_discount(0)
+                });
+            }
         },
         removeOrderline: function( line ){
             this.get('orderLines').remove(line);

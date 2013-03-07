@@ -48,8 +48,9 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                 client_screen: this.default_client_screen,
                 cashier_screen: this.default_cashier_screen,
             });
-
+            
             this.pos.bind('change:selectedOrder', this.load_saved_screen, this);
+            
         },
         add_screen: function(screen_name, screen){
             screen.hide();
@@ -147,6 +148,39 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
         init: function(parent,options){
             this._super(parent,options);
             this.hidden = false;
+
+            users = parent.pos.get("user_list")
+            for(i in users) {
+                if(users[i].id == parent.pos.get("uid")) {
+                    this.set_button_visibility(users[i])
+
+                }
+            }
+        },
+        set_button_visibility: function(user) { 
+    
+            $("#write-off-mode-button").hide()
+            $("#write-on-mode-button").hide()
+            $(".mode-button[data-mode='discount']").hide()
+            $(".mode-button[data-mode='price']").hide()
+            $("#refund-mode-button").hide() 
+
+            if(user.can_refund) {
+                $("#refund-mode-button").fadeIn()
+            }
+            
+            if(user.can_adjust) {
+                $("#write-off-mode-button").fadeIn()
+                $("#write-on-mode-button").fadeIn()
+                $(".mode-button[data-mode='price']").fadeIn()
+            }
+
+            if(user.can_discount) {
+                $(".mode-button[data-mode='discount']").fadeIn()
+            } 
+            if(this.pos_widget) {
+                this.pos_widget.refreshForMode(this.pos_widget)
+            }
         },
 
         help_button_action: function(){
@@ -173,7 +207,6 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                 }
             }
         },
-        
         // what happens when a cashier id barcode is scanned.
         // the default behavior is the following : 
         // - if there's a user with a matching ean, put it as the active 'cashier', go to cashier mode, and return true
@@ -186,6 +219,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                     this.pos_widget.username.refresh();
                     this.pos.proxy.cashier_mode_activated();
                     this.pos_widget.screen_selector.set_user_mode('cashier');
+                    this.set_button_visibility(users[i])
                     return true;
                 }
             }
@@ -420,7 +454,28 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             this.pos.barcode_reader.restore_callbacks();
         },
     });
+    module.OrderlineReasonWidget = module.PopUpWidget.extend({
+        template:"OrderLineReasonWidget",
+        show: function() {
+            this._super()
+            var self = this
+            ol = self.pos.get("selectedOrder")
+            if(ol) {
+                $("#orderline_text").val(ol.selected_orderline.get("line_note"))
+            } else {
+                $("#orderline_text").val("")
+            }
+            $('button#reason-ok-button').off().click(self,function(e) {
+                ol = self.pos.get("selectedOrder")
+                if(ol) {
+                self.pos.attributes.selectedOrder.selected_orderline.line_note = $("#orderline_text").val() 
+                    $("#orderline_text").val("")
+                    self.hide()
+                }
+            });
+        },
 
+    });
     module.ProductErrorPopupWidget = module.ErrorPopupWidget.extend({
         template:'ProductErrorPopupWidget',
     });

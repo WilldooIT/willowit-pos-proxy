@@ -25,6 +25,11 @@
                         <field name="ean13" />
                         <button name="edit_ean" type="object" string="Edit EAN" class="oe_edit_only" />
                     </group>
+                    <group>
+                        <field name="can_discount" />
+                        <field name="can_refund" />
+                        <field name="can_adjust" />
+                    </group>
                 </page>
             </notebook>
         </field>

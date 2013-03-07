@@ -12,6 +12,9 @@ class res_users(osv.osv):
     _columns = {
         'ean13' : fields.char('EAN13', size=13, help="BarCode"),
         'pos_config' : fields.many2one('pos.config', 'Default Point of Sale', domain=[('state', '=', 'active')]),
+        "can_discount":fields.boolean("Discount Lines"),
+        "can_refund":fields.boolean("Refund"),
+        "can_adjust":fields.boolean("Adjust Stock"),
     }
 
     def _check_ean(self, cr, uid, ids, context=None):

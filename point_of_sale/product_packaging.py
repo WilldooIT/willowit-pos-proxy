@@ -3,6 +3,10 @@ from tools import DEFAULT_SERVER_DATE_FORMAT
 import time
 class ProductPackaging(osv.osv):
     _inherit = "product.packaging"
+
+    def _check_ean_key(self, cr, uid, ids, context=None):
+        return True
+    
     def _get_price_for_package(self,cr,uid,ids,field,args,context=None):
         res = {}
         pricelist_item_obj = self.pool.get("product.pricelist.item")
@@ -24,3 +28,4 @@ class ProductPackaging(osv.osv):
         "pack_price":fields.function(_get_price_for_package,type="float",string="Package Price"),
         "type_name":fields.related("ul","name",type="string",string="Package Name")
     }
+    _constraints = [(_check_ean_key, 'Error: Invalid ean code', ['ean'])]

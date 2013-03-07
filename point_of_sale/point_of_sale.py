@@ -1174,6 +1174,8 @@ class pos_order_line(osv.osv):
         'discount': fields.float('Discount (%)', digits=(16, 2)),
         'order_id': fields.many2one('pos.order', 'Order Ref', ondelete='cascade'),
         'create_date': fields.datetime('Creation Date', readonly=True),
+        "line_type_code":fields.char(size=6,string="Type Code"),
+        "line_note":fields.char(size=256,string="Line note")
     }
 
     _defaults = {
@@ -1327,7 +1329,6 @@ class product_product(osv.osv):
             proxy.create(cr, uid, values, context=context)
 
         return category_id
-
     _defaults = {
         'to_weight' : False,
         'available_in_pos': True,

@@ -29,6 +29,7 @@ class account_journal(osv.osv):
 
         'amount_authorized_diff' : fields.float('Amount Authorized Difference'),
         'self_checkout_payment_method' : fields.boolean('Self Checkout Payment Method'),
+        "adjustment_payment_method":fields.boolean("Adjustment Payment Method"),
     }
     _defaults = {
         'self_checkout_payment_method' : False,

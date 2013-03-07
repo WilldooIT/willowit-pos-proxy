@@ -313,7 +313,7 @@ function openerp_pos_devices(instance,module){ //module is instance.point_of_sal
         // returns the checksum of the ean, or -1 if the ean has not the correct length, ean must be a string
         ean_checksum: function(ean){
             var code = ean.split('');
-            if(code.length !== 13){
+            if(!(code.length == 13 || code.length == 14)){
                 return -1;
             }
             var oddsum = 0, evensum = 0, total = 0;
@@ -331,6 +331,9 @@ function openerp_pos_devices(instance,module){ //module is instance.point_of_sal
         // returns true if the ean is a valid EAN codebar number by checking the control digit.
         // ean must be a string
         check_ean: function(ean){
+			if (ean.length == 14) {
+				return true
+			}
             return this.ean_checksum(ean) === Number(ean[ean.length-1]);
         },
         // returns a valid zero padded ean13 from an ean prefix. the ean prefix must be a string.
@@ -455,15 +458,19 @@ function openerp_pos_devices(instance,module){ //module is instance.point_of_sal
                     }
                     codeNumbers.push(e.keyCode - 48);
                     lastTimeStamp = new Date().getTime();
-                    if (codeNumbers.length === 13) {
-                        //We have found what seems to be a valid codebar
-                        self.on_ean(codeNumbers.join(''));
-                        codeNumbers = [];
-                    }
-                } else {
-                    // NaN
-                    codeNumbers = [];
-                }
+                    //if (codeNumbers.length === 13) {
+                    //    //We have found what seems to be a valid codebar
+                    //    self.on_ean(codeNumbers.join(''));
+                    //    codeNumbers = [];
+				} else if(e.keyCode == 13) {
+					if (codeNumbers.length == 13 || codeNumbers.length == 14) {
+						self.on_ean(codeNumbers.join(''))
+						codeNumbers = []
+					}
+				} else {
+					// NaN
+					codeNumbers = [];
+				}
             });
         },
 
