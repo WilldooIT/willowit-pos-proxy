@@ -27,12 +27,13 @@ class PosSession(osv.osv):
         account_journal_obj = self.pool.get("account.journal")
 
         session = self.browse(cr,uid,id,context=context)
-
+        discrepancy_amount = 0
         for payment_method in session.config_id.journal_ids:
             if payment_method.cash_control:
                 loss_moves = account_move_line_obj.search(cr,uid,
                     [('ref','=',session.name),
-                    ('account_id','=',payment_method.loss_account_id.id)],context=context)
+                    ('account_id','=',payment_method.loss_account_id.id),
+                    ('name','=','Point of Sale Loss')],context=context)
                 
                 if loss_moves:
                     loss = account_move_line_obj.browse(cr,uid,loss_moves[0],context=context)
@@ -48,10 +49,10 @@ class PosSession(osv.osv):
                     gain_amount = gain.credit + gain.debit
                 else:
                     gain_amount = 0
-        discrepancy_amount = gain_amount - loss_amount
 
+                discrepancy_amount += gain_amount - loss_amount
+                
         cash_payment_method = session.config_id.journal_ids
-        gain_moves = account_move_line_obj.search(cr,uid,[('ref','=',session.name),('name','=','Point of Sale Loss')],context=context)
 
         return {
             "name":session.name,
@@ -80,7 +81,7 @@ class PosOrder(osv.osv):
         return result
 
     _columns = {'pulled_centrally' : fields.selection([('sending', 'In transmission'), ('sent', 'Sent')], 'Pulled to Central Server', readonly=True),
-                'pull_needed' : fields.function(_pull_needed, type='boolean', string='Pull Needed')
+                'pull_needed' : fields.function(_pull_needed, type='boolean', string='Pull Needed'),
                 }
 
     def write(self, cr, uid, ids, vals, context=None):
@@ -96,11 +97,13 @@ class PosOrder(osv.osv):
         order_lines = [{
             "name":line.product_id.name,
             "product_id":line.product_id.id,
-            "price_unit":line.product_id.list_price,
+            "price_unit":line.price_unit,
             "price_subtotal_incl":line.price_subtotal_incl,
             "price_subtotal":line.price_subtotal,
             "discount":line.discount,
             "discount_notice":line.notice,
+            "line_type_code":line.line_type_code,
+            "line_note":line.line_note,
             "qty":line.qty} for line in order.lines],
 
         payment_types = {}
@@ -141,18 +144,16 @@ class ResPartner(osv.osv):
     def pull_columns(self, cr, uid, id, context=None):
         partner = self.browse(cr, uid, id, context=context)
         #we have to do silly things like this to play nicely with central, which is v6.1 for now.
-        if partner.is_company:
-            return {'name' : partner.name, 'date' : partner.date, 'ref' : partner.date, 'vat' : partner.vat, 'website' : partner.website, 'comment' : partner.comment, 'credit_limit' : partner.credit_limit, 'ean13' : partner.ean13, 'active' : partner.active,
-                    'customer' : partner.customer, 'supplier' : partner.supplier, 'employee' : partner.employee,
-                    'winery' : partner.winery,
-                    'parent_id' : partner.parent_id.id, 'title' : partner.title.id,
-                    'address_ids' : [x.id for x in partner.address],
-                    }
-        else:
-            return {'type' : partner.type, 'function' : partner.function, 'name' : partner.name,
+        return {'name' : partner.name, 'date' : partner.date, 'ref' : partner.date, 'vat' : partner.vat, 'website' : partner.website, 'comment' : partner.comment, 'credit_limit' : partner.credit_limit, 'ean13' : partner.ean13, 'active' : partner.active,
+                'customer' : partner.customer, 'supplier' : partner.supplier, 'employee' : partner.employee,
+                'winery' : partner.winery,
+                'parent_id' : partner.parent_id.id, 'title' : partner.title.id,
+                'address_ids' :[{
+                    'type' : partner.type, 'function' : partner.function, 'name' : partner.name,
                     'street' : partner.street, 'street2' : partner.street2, 'zip' : partner.zip, 'city' : partner.city,
                     'email' : partner.email, 'phone' : partner.phone, 'fax' : partner.fax, 'mobile' : partner.mobile, 'birthdate' : partner.birthdate,
-                    'active' : partner.active}
+                    'active' : partner.active}]}
+
 
 
 #class ResPartner(osv.osv):

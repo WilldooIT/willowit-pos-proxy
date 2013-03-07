@@ -131,6 +131,9 @@ class WexiImportClass(osv.osv):
                 res['seller_id'] = values.pop('seller_id')
             if 'new_qty' in values:
                 res['new_qty'] = values.pop('new_qty')
+            if "pos_categ_id" in values:
+                res["pos_categ_id"] = False
+                values.pop("pos_categ_id")
             #
             # this is version 7.0 code, but won't fall over for 6.1 as the field will not exist for 6.1
             #
@@ -151,6 +154,7 @@ class WexiImportClass(osv.osv):
 
     def _postprocess(self, cr, uid, id, model, values, stashed_values, context=None):
 
+                
 
         if model == 'product.product':
             if 'seller_id' in stashed_values:
@@ -167,6 +171,56 @@ class WexiImportClass(osv.osv):
                         supplierinfo_obj.create(cr, uid, new_values, context=context)
                 else:
                     supplierinfo_obj.unlink(cr, uid, supplierinfo_obj.search(cr, uid, [('product_id', '=', id)], context=context), context=context)
+                
+            product_obj = self.pool.get("product.product")
+            wine_type_obj = self.pool.get("wexi.wine.type")
+            pos_category_obj = self.pool.get("pos.category")
+            category_obj = self.pool.get("product.category")
+            product = product_obj.browse(cr,uid,id,context=context)
+            if not product.type_id:
+                if product.categ_id:
+                    def make_from_category(categ_id):
+                        category = category_obj.browse(cr,uid,categ_id,context=context)
+                        domain = [("name","=",category.name)]
+                        if not category.parent_id:
+                            domain.append(("parent_id","=",False))
+                        cat_id = pos_category_obj.search(cr,uid,domain,context=context)
+                        if cat_id:
+                            return cat_id[0]
+                        else:
+                            if category.parent_id:
+                                parent_id = make_from_category(category.parent_id.id)
+                            else:
+                                parent_id = False
+                            return pos_category_obj.create(cr,uid,{"name":category.name,"parent_id":parent_id},context=context)
+                    category_id = make_from_category(product.categ_id.id)
+                
+                else:
+                    category_id = product_obj.default_get(cr,uid,["pos_categ_id"],context=context)["pos_categ_id"]
+            else:
+                category_id = product.type_id and pos_category_obj.search(cr,uid,[("name","=",product.type_id.name)],context=context) or False
+                if category_id:
+                    category_id.sort()
+                    category_id.reverse()
+                    category_id = category_id[0]
+                else:
+                    def make_from_wine_type(wt_id):
+                        wt = wine_type_obj.browse(cr,uid,wt_id,context=context)
+                        domain = [("name","=",wt.name)]
+                        if not wt.parent_id:
+                            domain.append(("parent_id","=",False))
+                        cat_id = pos_category_obj.search(cr,uid,domain,context=context)
+                        if cat_id:
+                            return cat_id[0]
+                        else:
+                            if wt.parent_id:
+                                parent_id = make_from_wine_type(wt.parent_id.id)
+                            else:
+                                parent_id = False
+                            return pos_category_obj.create(cr,uid,{"name":wt.name,"parent_id":parent_id},context=context)
+                    category_id = make_from_wine_type(product.type_id.id)
+            product_obj.write(cr,uid,id,{"pos_categ_id":category_id},context=context)
+                
 
             if 'new_qty' in stashed_values:
                 product_obj = self.pool.get('product.product')
