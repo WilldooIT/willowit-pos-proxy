@@ -409,6 +409,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                     this.quantityStr = '' + this.quantity;
                 }
             }
+            this.order.recalculateDiscount()
             this.trigger('change');
         },
         // return the quantity of product
@@ -472,6 +473,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 this.order.recalculateDiscount()
         },
         export_as_JSON: function() {
+			
             return {
                 qty: this.get_quantity(),
                 price_unit: this.get_unit_price(),
@@ -673,6 +675,11 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             this.selectLine(this.getLastOrderline());
             this.negateAllLines();
             this.recalculateDiscount() 
+            this.pos.proxy.message("display_product",{
+                "name":line.product.get("name"),
+                "price":line.price,
+                "discount":line.discount,
+                });
         },
         negateAllLines: function() {
             self = this
@@ -688,35 +695,44 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
         },
         recalculateDiscount: function() {
             lines = this.get("orderLines")
-            totalLinesQty12 = 0
-            totalLinesQty6 = 0
-            _.each(lines.models,function(line) {
-                if(line.product.get("discount_program_in_store_6")) {
-                    totalLinesQty6 += line.quantity
-                } 
-                if(line.product.get("discount_program_in_store_12")) {
-                    totalLinesQty12 += line.quantity
-                } 
-            })
-            if(totalLinesQty12 >= 12) {
-                discount = 0.2
-                _.each(lines.models,function(line) {
-                    if(line.product.get("discount_program_in_store_12")) {
-                        line.set_discount(discount * 100)
-                    }
-                })
-            } else if(totalLinesQty6 >= 6) {
-                discount = 0.1
-                _.each(lines.models,function(line) {
-                    if(line.product.get("discount_program_in_store_6")) {
-                        line.set_discount(discount * 100)
-                    }
-                })
-            } else {
-                _.each(lines.models,function(line) {
-                    line.set_discount(0)
-                });
-            }
+			if(this.transaction_mode == "w_on" || this.transaction_mode == "w_off") {
+				_.each(lines.models,function(line) {
+					line.set_discount(0)
+					line.product = line.product.clone()
+					line.product.set("taxes_id",[])
+				})
+			} else {
+				totalLinesQty12 = 0
+				totalLinesQty6 = 0
+				_.each(lines.models,function(line) {
+					line.product.set("taxes_id",line.pos.get("products").get(line.product.id).get("taxes_id"))
+					if(line.product.get("discount_program_in_store_6")) {
+						totalLinesQty6 += line.quantity
+					} 
+					if(line.product.get("discount_program_in_store_12")) {
+						totalLinesQty12 += line.quantity
+					} 
+				})
+				if(totalLinesQty12 >= 12) {
+					discount = 0.2
+					_.each(lines.models,function(line) {
+						if(line.product.get("discount_program_in_store_12")) {
+							line.set_discount(discount * 100)
+						}
+					})
+				} else if(totalLinesQty6 >= 6) {
+					discount = 0.1
+					_.each(lines.models,function(line) {
+						if(line.product.get("discount_program_in_store_6")) {
+							line.set_discount(discount * 100)
+						}
+					})
+				} else {
+					_.each(lines.models,function(line) {
+						line.set_discount(0)
+					});
+				}
+			}
         },
         removeOrderline: function( line ){
             this.get('orderLines').remove(line);
@@ -822,7 +838,6 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             var company = this.pos.get('company');
             var shop    = this.pos.get('shop');
             var date = new Date();
-
             return {
                 orderlines: orderlines,
                 paymentlines: paymentlines,
@@ -858,6 +873,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                     name: shop.name,
                 },
                 currency: this.pos.get('currency'),
+                transaction_mode: this.transaction_mode
             };
         },
         exportAsJSON: function() {

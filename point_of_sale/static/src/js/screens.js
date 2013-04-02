@@ -218,6 +218,9 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                     this.pos.set('cashier',users[i]);
                     this.pos_widget.username.refresh();
                     this.pos.proxy.cashier_mode_activated();
+                    this.pos.proxy.message("employee_scan",
+                        {"employee_uid":this.pos.get("cashier").id,
+                         "pos_id":this.pos.get("pos_config").id})
                     this.pos_widget.screen_selector.set_user_mode('cashier');
                     this.set_button_visibility(users[i])
                     return true;
@@ -661,6 +664,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             this.canceled = false;
             this.paid     = false;
 
+            this.pos_widget.refreshForMode(this.pos_widget)
             // initiates the connection to the payment terminal and starts the update requests
             this.start = function(){
                 var def = new $.Deferred();
@@ -950,6 +954,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
 
             this.updatePaymentSummary();
             this.line_refocus();
+            this.pos_widget.refreshForMode(this.pos_widget)
         },
         close: function(){
             this._super();
@@ -1033,7 +1038,8 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             var currentOrder = this.pos.get('selectedOrder');
             var paidTotal = currentOrder.getPaidTotal();
             var dueTotal = currentOrder.getTotalTaxIncluded();
-            var remaining = dueTotal > paidTotal ? dueTotal - paidTotal : 0;
+            //var remaining = dueTotal > paidTotal ? dueTotal - paidTotal : 0;
+            var remaining = dueTotal - paidTotal;
             var change = paidTotal > dueTotal ? paidTotal - dueTotal : 0;
 
             this.$('#payment-due-total').html(this.format_currency(dueTotal));

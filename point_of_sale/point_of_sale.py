@@ -70,6 +70,7 @@ class pos_config(osv.osv):
                 "to customize the reference numbers of your orders."),
         'session_ids': fields.one2many('pos.session', 'config_id', 'Sessions'),
         'group_by' : fields.boolean('Group Journal Items', help="Check this if you want to group the Journal Items by Product while closing a Session"),
+        "default_user_id":fields.many2one("res.users","Default User"),
     }
 
     def _check_cash_control(self, cr, uid, ids, context=None):
@@ -84,6 +85,7 @@ class pos_config(osv.osv):
 
     def copy(self, cr, uid, id, default=None, context=None):
         br = self.browse(cr,uid,id,context=context)
+        user_obj = self.pool.get("res.users")
         if not default:
             default = {}
         d = {
@@ -92,8 +94,12 @@ class pos_config(osv.osv):
             "session_ids":False,
         }
         d.update(default)
-        return super(pos_config, self).copy(cr, uid, id, d, context=context)
-
+        user_id = False
+        user_id = self.create_default_pos_user(cr,uid,context=context)
+        config_id =  super(pos_config, self).copy(cr, uid, id, d, context=context)
+        if user_id:
+            user_obj.write(cr,uid,user_id,{"pos_config":config_id},context=context)
+        return config_id
 
     def name_get(self, cr, uid, ids, context=None):
         result = []
@@ -137,14 +143,40 @@ class pos_config(osv.osv):
 
     def create(self, cr, uid, values, context=None):
         proxy = self.pool.get('ir.sequence')
+        user_obj = self.pool.get("res.users")
+
         sequence_values = dict(
             name='PoS %s' % values['name'],
             padding=5,
             prefix="%s/"  % values['name'],
         )
+
+
+
+
         sequence_id = proxy.create(cr, uid, sequence_values, context=context)
         values['sequence_id'] = sequence_id
-        return super(pos_config, self).create(cr, uid, values, context=context)
+        
+        if not values.get("default_user_id"):
+            values["default_user_id"] = self.create_default_pos_user(cr,uid,context=context)
+
+        config_id =  super(pos_config, self).create(cr, uid, values, context=context)   
+        if values.get("default_user_id"):
+            user_obj.write(cr,uid,values.get("default_user_id"),{"pos_config":config_id},context=context)
+
+        return config_id
+
+    def create_default_pos_user(self,cr,uid,context=None):
+        res_user_obj = self.pool.get("res.users")
+        
+        u_vals = res_user_obj.default_get(cr,uid,res_user_obj.fields_get_keys(cr,uid,context=context),context=context)
+        u_vals["name"] = "User %0.4d" % (1 + len(res_user_obj.search(cr,uid,[],context=context)))
+        u_vals["login"] = "user_%0.4d" % (1 + len(res_user_obj.search(cr,uid,[],context=context)))
+        u_vals["notification_email_send"] = "none"
+        u_vals["action_id"] = self.pool.get("ir.model.data").get_object(cr,uid,"point_of_sale","action_pos_pos").id
+        u_vals["groups_id"] = [(4,id) for id in u_vals.pop("groups_id")]
+        user_id = res_user_obj.create(cr,uid,u_vals,context=context)
+        return user_id
 
     def unlink(self, cr, uid, ids, context=None):
         for obj in self.browse(cr, uid, ids, context=context):
@@ -377,7 +409,24 @@ class pos_session(osv.osv):
             'tag' : 'pos.ui',
             'context' : context,
         }
+    def start_all_pos_sessions(self,cr,uid,context=None):
+        session_ids = []
+        pos_config_obj = self.pool.get("pos.config")
+        for pos in pos_config_obj.browse(cr,uid,pos_config_obj.search(cr,uid,[("state","=","active")],context=context),context=context):
+            already_open = False
+            for session in pos.session_ids:
+                if session.state != "closed":
+                    already_open=True
+                    break;
+            if not already_open:
+                defaults = self.default_get(cr,uid,self.fields_get_keys(cr,uid,context=context),context=context)
+                defaults.update({"config_id":pos.id,"user_id":pos.default_user_id.id})
+                s_id = self.create(cr,uid,defaults,context=context)
+                session_ids.append(s_id)
 
+        return session_ids
+
+        
     def wkf_action_open(self, cr, uid, ids, context=None):
         # second browse because we need to refetch the data from the DB for cash_register_id
         for record in self.browse(cr, uid, ids, context=context):
@@ -573,7 +622,8 @@ class pos_order(osv.osv):
             'name': self.pool.get('ir.sequence').get(cr, uid, 'pos.order'),
         }
         d.update(default)
-        return super(pos_order, self).copy(cr, uid, id, d, context=context)
+        config_id = super(pos_order, self).copy(cr, uid, id, d, context=context)
+        return config_id
 
     _columns = {
         'name': fields.char('Order Ref', size=64, required=True, readonly=True),
@@ -1126,7 +1176,10 @@ class pos_order_line(osv.osv):
         for line in self.browse(cr, uid, ids, context=context):
             taxes = line.product_id.taxes_id
             price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
-            taxes = account_tax_obj.compute_all(cr, uid, line.product_id.taxes_id, price, line.qty, product=line.product_id, partner=line.order_id.partner_id or False)
+            if line.line_type_code in ["W_ON","W_OFF"]:
+                taxes = account_tax_obj.compute_all(cr, uid, [], price, line.qty, product=line.product_id, partner=line.order_id.partner_id or False)
+            else:
+                taxes = account_tax_obj.compute_all(cr, uid, line.product_id.taxes_id, price, line.qty, product=line.product_id, partner=line.order_id.partner_id or False)
 
             cur = line.order_id.pricelist_id.currency_id
             res[line.id]['price_subtotal'] = cur_obj.round(cr, uid, cur, taxes['total'])
@@ -1159,7 +1212,10 @@ class pos_order_line(osv.osv):
         prod = self.pool.get('product.product').browse(cr, uid, product, context=context)
 
         price = price_unit * (1 - (discount or 0.0) / 100.0)
-        taxes = account_tax_obj.compute_all(cr, uid, prod.taxes_id, price, qty, product=prod, partner=False)
+        if line.line_type_code in ["W_ON","W_OFF"]:
+            taxes = account_tax_obj.compute_all(cr, uid, [], price, qty, product=prod, partner=False)
+        else:
+            taxes = account_tax_obj.compute_all(cr, uid, prod.taxes_id, price, qty, product=prod, partner=False)
 
         result['price_subtotal'] = taxes['total']
         result['price_subtotal_incl'] = taxes['total_included']

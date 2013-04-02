@@ -775,6 +775,7 @@
                         <field name="journal_id" widget="selection" />
                         <field name="sequence_id" readonly="1" groups="base.group_no_one" />
                         <field name="group_by" groups="account.group_account_user"  />
+                        <field name="default_user_id" />
                         </group>
                         <separator string="Available Payment Methods" colspan="4"/>
                         <field name="journal_ids" colspan="4" nolabel="1">
@@ -1075,6 +1076,32 @@
             </field>
         </record>
 
+        <record id="pos_open_all_sessions" model="ir.actions.server">
+            <field name="type">ir.actions.server</field>
+            <field name="state">code</field>
+            <field name="model_id" ref="model_pos_config"></field>
+            <field name="condition">True</field>
+            <field name="sequence" eval="1" />
+            <field name="name">Open All POS Sessions in opening control mode</field>
+            <field name="code">
+self.pool.get("pos.session").start_all_pos_sessions(cr,uid,context=context)
+action = {
+    "name":"pos_sessions",
+    "res_model":"pos.session",
+    "view_mode":"tree,form",
+    "domain":[("state","=","opening_control")],
+    "context":context,
+    "type":"ir.actions.act_window"
+}
+</field>
 
+        </record>
+        <record id="pos_open_all_sessions_menu" model="ir.ui.menu">
+            <field name="name">Open all POS Sessions</field>
+            <field name="parent_id" ref="menu_point_of_sale" />
+            <field name="sequence" eval="99" />
+            <field name="action" ref="pos_open_all_sessions" />
+            <field name="groups_id" eval="[(4,group_pos_manager)]" />
+        </record>
     </data>
 </openerp>
