@@ -1,0 +1,50 @@
+//receipt
+I::@c_logo
+C::www.merchantsofsingapore.com.sg
+C::PH: XXX-XXXXX
+C::52-53 Duxton Road 
+C::Singapore 089516
+O::@c_b_on REFUND @c_b_off :: @is_refund
+O::@c_b_on ADJUSTMENT @c_b_off :: @is_adjustment
+-::
+J::@date ::                       @ref
+J::Served By: ::          @salesperson
+-::
+&::@lines
+-::
+J::Subtotal:  ::             $@subtotal
+J::GST:       ::                  $@gst
+J::Total:     ::                $@total
+-::
+&::@payment_lines
+J::Total Paid: ::          $@total_paid
+J::Change:   ::                $@change
+N::
+N::
+N::
+C::[@receipt_type Copy]
+I::@c_cut
+
+//lines
+L::@name
+R::@qty @unit @@ @price_unit : $@line_subtotal
+O::Discount: @discount% ::    @discount
+
+//payment_lines
+J::@journal ::                 $@amount
+
+//vfd_change
+J::Change:   ::                 $@change
+C:: See you next time!
+
+//vfd_clock
+C::Premium Importers
+J::@date :: @time
+
+//vfd_motd
+C::Welcome to
+C::Merchants:
+
+//vfd_item
+J::@name    :: $@price
+O::@Discount: @discount% :: @discount

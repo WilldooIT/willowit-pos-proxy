@@ -1,0 +1,123 @@
+id,code,name,parent_id:id,type,user_type:id,reconcile,src_acc_type
+00000,00000,Company,,view,account.data_account_type_view,FALSE,dummy
+BAL,BAL,Balance Sheet,00000,view,account.data_account_type_view,FALSE,dummy
+PL,PL,Profit and Loss,00000,view,account.data_account_type_view,FALSE,dummy
+100000,100000,Assets,BAL,view,account.data_account_type_asset,FALSE,Asset
+110100,110100,Cash at Bank 1,100000,liquidity,account.data_account_type_bank,TRUE,Asset-Bank
+110200,110200,Cash at Bank 2,100000,liquidity,account.data_account_type_bank,TRUE,Bank
+110300,110300,Cash at Bank 3,100000,liquidity,account.data_account_type_bank,TRUE,Bank
+111100,111100,Trade receivables,100000,receivable,account.data_account_type_receivable,TRUE,Accounts Receivable
+112100,112100,Accrued Income,100000,liquidity,account.data_account_type_bank,TRUE,Bank
+112200,112200,Cash on Hand,100000,liquidity,account.data_account_type_bank,TRUE,Bank
+112300,112300,Deposits,100000,other,account.data_account_type_asset,FALSE,Asset
+112400,112400,Prepayments,100000,other,account.data_account_type_asset,FALSE,Asset
+112500,112500,Stock on Hand,100000,other,account.data_account_type_asset,FALSE,Asset
+112600,112600,Sundry debtors,100000,receivable,account.data_account_type_receivable,TRUE,Accounts Receivable
+112700,112700,Term debtors,100000,receivable,account.data_account_type_receivable,TRUE,Accounts Receivable
+112800,112800,Undeposited Funds,100000,other,account.data_account_type_asset,FALSE,Asset
+112900,112900,Withholding tax paid,100000,other,account.data_account_type_asset,FALSE,Asset
+120100,120100,Furniture and Fittings,100000,other,account.data_account_type_asset,FALSE,Other Asset
+120200,120200,Furniture and Fittings:Accum. PU depreciation ,100000,other,account.data_account_type_asset,FALSE,Other Asset
+120300,120300,Office  Equipment,100000,other,account.data_account_type_asset,FALSE,Other Asset
+120400,120400,Office Equipment: accumulated depreciation ,100000,other,account.data_account_type_asset,FALSE,Other Asset
+120500,120500,Office furniture,100000,other,account.data_account_type_asset,FALSE,Other Asset
+120600,120600,Office furniture accumulated depreciation,100000,other,account.data_account_type_asset,FALSE,Other Asset
+120700,120700,Property improvements,100000,other,account.data_account_type_asset,FALSE,Other Asset
+120800,120800,Property improvements:Less accumulated depreciation,100000,other,account.data_account_type_asset,FALSE,Other Asset
+200000,200000,Liabilities,BAL,view,account.data_account_type_liability,FALSE,Liability
+210100,210100,Trade creditors,200000,payable,account.data_account_type_payable,TRUE,Accounts Payable
+211100,211100,CPF Payable,200000,other,account.data_account_type_asset,FALSE,Other Liability
+211200,211200,Bills payable,200000,other,account.data_account_type_asset,FALSE,Other Liability
+211300,211300,Goods and Services Tax Payable,200000,other,account.data_account_type_asset,FALSE,Other Liability
+211400,211400,Other creditors,200000,other,account.data_account_type_asset,FALSE,Other Liability
+211500,211500,Payroll Liabilities,200000,other,account.data_account_type_asset,FALSE,Other Liability
+211600,211600,Provision for dividend,200000,other,account.data_account_type_asset,FALSE,Other Liability
+211700,211700,Sundry creditors,200000,other,account.data_account_type_asset,FALSE,Other Liability
+211800,211800,Tax Payable,200000,other,account.data_account_type_asset,FALSE,Other Liability
+300000,300000,Equity,BAL,view,account.data_account_type_liability,FALSE,Equity
+310100,310100,Fully/part paid shares,300000,other,account.data_account_type_liability,FALSE,Equity
+310200,310200,Opening Bal Equity,300000,other,account.data_account_type_liability,FALSE,Equity
+310300,310300,Retained Earnings,300000,other,account.data_account_type_liability,FALSE,Equity
+310400,310400,Current Year Earnings,300000,other,account.data_account_type_liability,FALSE,Current Year Earnings
+400000,400000,Income,PL,view,account.data_account_type_income,FALSE,Income
+410100,410100,Management fees,400000,other,account.data_account_type_income,FALSE,Income
+410200,410200,Other revenue,400000,other,account.data_account_type_income,FALSE,Income
+410300,410300,Sales - Retail,400000,other,account.data_account_type_income,FALSE,Income-Account
+410400,410400,Sales - Wholesale,400000,other,account.data_account_type_income,FALSE,Income
+500000,500000,Cost of Sales,400000,view,account.data_account_type_expense,FALSE,Cost of Sales
+510100,510100,Stock,500000,other,account.data_account_type_expense,FALSE,Expense-Account
+600000,600000,Expenses,PL,view,account.data_account_type_expense,FALSE,Expense
+610100,610100,Accountancy fees,600000,other,account.data_account_type_expense,FALSE,Expense
+610200,610200,Administration costs,600000,other,account.data_account_type_expense,FALSE,Expense
+610300,610300,Amortisation,600000,other,account.data_account_type_expense,FALSE,Expense
+610400,610400,Auditors remuneration,600000,other,account.data_account_type_expense,FALSE,Expense
+610500,610500,Bad debts written off,600000,other,account.data_account_type_expense,FALSE,Expense
+610600,610600,Collection costs,600000,other,account.data_account_type_expense,FALSE,Expense
+610700,610700,Commission paid,600000,other,account.data_account_type_expense,FALSE,Expense
+610800,610800,Consultancy fees,600000,other,account.data_account_type_expense,FALSE,Expense
+610900,610900,Contract work,600000,other,account.data_account_type_expense,FALSE,Expense
+611000,611000,Data processing charges,600000,other,account.data_account_type_expense,FALSE,Expense
+611100,611100,Debt collection,600000,other,account.data_account_type_expense,FALSE,Expense
+611200,611200,Delivery costs,600000,other,account.data_account_type_expense,FALSE,Expense
+611300,611300,Depreciation - buildings,600000,other,account.data_account_type_expense,FALSE,Expense
+611400,611400,Depreciation - fittings,600000,other,account.data_account_type_expense,FALSE,Expense
+611500,611500,Depreciation - office furniture,600000,other,account.data_account_type_expense,FALSE,Expense
+611600,611600,Depreciation - plant and equip.,600000,other,account.data_account_type_expense,FALSE,Expense
+611700,611700,Depreciation - property improv.,600000,other,account.data_account_type_expense,FALSE,Expense
+611800,611800,Directors fees,600000,other,account.data_account_type_expense,FALSE,Expense
+611900,611900,Directors salaries,600000,other,account.data_account_type_expense,FALSE,Expense
+612000,612000,Discount allowed,600000,other,account.data_account_type_expense,FALSE,Expense
+612100,612100,Donations,600000,other,account.data_account_type_expense,FALSE,Expense
+612200,612200,Doubtful debts,600000,other,account.data_account_type_expense,FALSE,Expense
+612300,612300,Electricity,600000,other,account.data_account_type_expense,FALSE,Expense
+612400,612400,Entertainment expenses,600000,other,account.data_account_type_expense,FALSE,Expense
+612500,612500,Fees and permits,600000,other,account.data_account_type_expense,FALSE,Expense
+612600,612600,Filing fees,600000,other,account.data_account_type_expense,FALSE,Expense
+612700,612700,Flowers and decorations,600000,other,account.data_account_type_expense,FALSE,Expense
+612800,612800,Freight and cartage,600000,other,account.data_account_type_expense,FALSE,Expense
+612900,612900,General expenses,600000,other,account.data_account_type_expense,FALSE,Expense
+613000,613000,Hire of plant and equipment,600000,other,account.data_account_type_expense,FALSE,Expense
+613100,613100,Insurance,600000,other,account.data_account_type_expense,FALSE,Expense
+613200,613200,Insurance:Employer liability,600000,other,account.data_account_type_expense,FALSE,Expense
+613300,613300,Insurance:General,600000,other,account.data_account_type_expense,FALSE,Expense
+613400,613400,Insurance:Professional indemnity,600000,other,account.data_account_type_expense,FALSE,Expense
+613500,613500,Insurance:Sickness and accident,600000,other,account.data_account_type_expense,FALSE,Expense
+613600,613600,Insurance:Workers compensation,600000,other,account.data_account_type_expense,FALSE,Expense
+613700,613700,Interest expense,600000,other,account.data_account_type_expense,FALSE,Expense
+613800,613800,Interest expense:Finance charge,600000,other,account.data_account_type_expense,FALSE,Expense
+613900,613900,Interest expense:Hire purchases charge,600000,other,account.data_account_type_expense,FALSE,Expense
+614000,614000,Laundry and dry cleaning,600000,other,account.data_account_type_expense,FALSE,Expense
+614100,614100,Legal costs,600000,other,account.data_account_type_expense,FALSE,Expense
+614200,614200,Licencing fees,600000,other,account.data_account_type_expense,FALSE,Expense
+614300,614300,Newspapers,600000,other,account.data_account_type_expense,FALSE,Expense
+614400,614400,Packing materials,600000,other,account.data_account_type_expense,FALSE,Expense
+614500,614500,Payroll Expenses,600000,other,account.data_account_type_expense,FALSE,Expense
+614600,614600,Permits / licences / fees,600000,other,account.data_account_type_expense,FALSE,Expense
+614700,614700,Postage,600000,other,account.data_account_type_expense,FALSE,Expense
+614800,614800,Printing and stationery,600000,other,account.data_account_type_expense,FALSE,Expense
+614900,614900,Recorded music rental,600000,other,account.data_account_type_expense,FALSE,Expense
+615000,615000,Registration fees,600000,other,account.data_account_type_expense,FALSE,Expense
+615100,615100,Rent,600000,other,account.data_account_type_expense,FALSE,Expense
+615200,615200,Salaries,600000,other,account.data_account_type_expense,FALSE,Expense
+615300,615300,Security costs,600000,other,account.data_account_type_expense,FALSE,Expense
+615400,615400,Selling commission,600000,other,account.data_account_type_expense,FALSE,Expense
+615500,615500,Selling expenses,600000,other,account.data_account_type_expense,FALSE,Expense
+615600,615600,Service charges,600000,other,account.data_account_type_expense,FALSE,Expense
+615700,615700,Sign writing,600000,other,account.data_account_type_expense,FALSE,Expense
+615800,615800,Staff training and welfare,600000,other,account.data_account_type_expense,FALSE,Expense
+615900,615900,Stamp duty,600000,other,account.data_account_type_expense,FALSE,Expense
+616000,616000,Stock taking expenses,600000,other,account.data_account_type_expense,FALSE,Expense
+616100,616100,Storage fees,600000,other,account.data_account_type_expense,FALSE,Expense
+616200,616200,Subscriptions,600000,other,account.data_account_type_expense,FALSE,Expense
+616300,616300,Supplies,600000,other,account.data_account_type_expense,FALSE,Expense
+616400,616400,Supplies:Field,600000,other,account.data_account_type_expense,FALSE,Expense
+616500,616500,Supplies:Marketing,600000,other,account.data_account_type_expense,FALSE,Expense
+616600,616600,Supplies:Office,600000,other,account.data_account_type_expense,FALSE,Expense
+616700,616700,Telephone,600000,other,account.data_account_type_expense,FALSE,Expense
+616800,616800,Travelling expenses,600000,other,account.data_account_type_expense,FALSE,Expense
+616900,616900,Uniforms,600000,other,account.data_account_type_expense,FALSE,Expense
+617000,617000,Wages,600000,other,account.data_account_type_expense,FALSE,Expense
+617100,617100,Waste disposal,600000,other,account.data_account_type_expense,FALSE,Expense
+617200,617200,Workshop expenses,600000,other,account.data_account_type_expense,FALSE,Expense
+617300,617300,Wrapping and packing,600000,other,account.data_account_type_expense,FALSE,Expense
+620100,620100,Over provision income tax,600000,other,account.data_account_type_expense,FALSE,Other Expense
