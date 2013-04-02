@@ -127,6 +127,8 @@ class WexiImportClass(osv.osv):
                 
                     
         if model == 'product.product': 
+            if "list_price" in values:
+                res["list_price"] = values.pop("list_price")
             if 'seller_id' in values:
                 res['seller_id'] = values.pop('seller_id')
             if 'new_qty' in values:
@@ -177,6 +179,10 @@ class WexiImportClass(osv.osv):
             pos_category_obj = self.pool.get("pos.category")
             category_obj = self.pool.get("product.category")
             product = product_obj.browse(cr,uid,id,context=context)
+            
+            if "list_price" in stashed_values and not product.is_wine:
+                product_obj.write(cr,uid,id,{"list_price":stashed_values["list_price"]},context=context)
+                
             if not product.type_id:
                 if product.categ_id:
                     def make_from_category(categ_id):
@@ -254,7 +260,7 @@ class WexiImportClass(osv.osv):
             if "items_id" in values:
                 pricelist_id = values.get("pricelist_id")
                 if pricelist_id == irp_obj.get(cr,uid,"property_product_pricelist","res.partner",context=context).id:
-                    for product in product_obj.browse(cr,uid,product_obj.search(cr,uid,[],context=context),context=context):
+                    for product in product_obj.browse(cr,uid,product_obj.search(cr,uid,[("is_wine","=",True)],context=context),context=context):
                         
                         new_price = pricelist_obj.price_get(cr,uid,[pricelist_id],product.id,1.0,False,{"uom":product.uom_id.id,"date": time.strftime(DEFAULT_SERVER_DATE_FORMAT)})[pricelist_id]
                         product_obj.write(cr,uid,product.id,{"list_price":new_price},context=context)
