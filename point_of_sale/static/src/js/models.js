@@ -702,25 +702,30 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
 					line.product.set("taxes_id",[])
 				})
 			} else {
+				totalQuantity = 0
 				totalLinesQty12 = 0
 				totalLinesQty6 = 0
 				_.each(lines.models,function(line) {
 					line.product.set("taxes_id",line.pos.get("products").get(line.product.id).get("taxes_id"))
-					if(line.product.get("discount_program_in_store_6")) {
-						totalLinesQty6 += line.quantity
-					} 
-					if(line.product.get("discount_program_in_store_12")) {
-						totalLinesQty12 += line.quantity
-					} 
+					totalQuantity += line.quantity
+//					if(line.product.get("discount_program_in_store_6")) {
+//						totalLinesQty6 += line.quantity
+//					} 
+//					if(line.product.get("discount_program_in_store_12")) {
+//						totalLinesQty12 += line.quantity
+//					} 
 				})
-				if(totalLinesQty12 >= 12) {
+
+//				if(totalLinesQty12 >= 12) {
+				if(totalQuantity >= 12) {
 					discount = 0.2
 					_.each(lines.models,function(line) {
 						if(line.product.get("discount_program_in_store_12")) {
 							line.set_discount(discount * 100)
 						}
 					})
-				} else if(totalLinesQty6 >= 6) {
+//				} else if(totalLinesQty6 >= 6) {
+				} else if(totalQuantity >= 6) {
 					discount = 0.1
 					_.each(lines.models,function(line) {
 						if(line.product.get("discount_program_in_store_6")) {
