@@ -68,7 +68,7 @@
     </t>
 
     <t t-name="HeaderButtonWidget">
-        <div class="header-button">
+        <div class="header-button" style="background:#444;position:fixed;width:50px;width:60px;right:0px;top:0px;">
             <t t-esc="widget.label" />
         </div>
     </t>
