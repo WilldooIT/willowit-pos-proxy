@@ -94,12 +94,12 @@ Requests are dispatched based upon the request path.
                 self.print_receipt(receipt)
                 return Response("")
             elif request.path == "/pos/display_product":
-                r = request.args.get("r")
-                rpc_call = json.loads(r)
-                name = rpc_call["params"]["name"]
-                price = rpc_call["params"]["price"]
-                discount = rpc_call["params"]["discount"]
-                self.vfd_cook("vfd_item",{"name":name,"price":price,"discount":discount}) , 
+                #r = request.args.get("r")
+                #rpc_call = json.loads(r)
+                #name = rpc_call["params"]["name"]
+                #price = rpc_call["params"]["price"]
+                #discount = rpc_call["params"]["discount"]
+                #self.vfd_cook("vfd_item",{"name":name,"price":price,"discount":discount}) , 
                 return Response("")
             elif request.path == "/pos/employee_scan":
                 r = request.args.get("r")
@@ -110,7 +110,7 @@ Requests are dispatched based upon the request path.
                 return Response("")
             else:
                 return Response("")
-        run_simple("localhost",self.config["listen_port"],application)
+        run_simple("0.0.0.0",self.config["listen_port"],application)
     
     def scan_event(self,user_id,pos_id):
         """ records an employee scan event, timestamps it, and sends it to the scan syncer """
