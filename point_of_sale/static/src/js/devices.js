@@ -263,7 +263,7 @@ function openerp_pos_devices(instance,module){ //module is instance.point_of_sal
             this.weight_prefix_set   = attributes.weight_prefix_set   ||  {'21':''};
             this.discount_prefix_set = attributes.discount_prefix_set ||  {'22':''};
             this.price_prefix_set    = attributes.price_prefix_set    ||  {'23':''};
-            this.cashier_prefix_set  = attributes.cashier_prefix_set  ||  {'041':''};
+            this.cashier_prefix_set  = attributes.cashier_prefix_set  ||  {'410':''};
             this.client_prefix_set   = attributes.client_prefix_set   ||  {'042':''};
         },
 
@@ -331,7 +331,7 @@ function openerp_pos_devices(instance,module){ //module is instance.point_of_sal
         // returns true if the ean is a valid EAN codebar number by checking the control digit.
         // ean must be a string
         check_ean: function(ean){
-			if (ean.length == 14) {
+			if (ean.length == 14 || ean.length == 12) {
 				return true
 			}
             return this.ean_checksum(ean) === Number(ean[ean.length-1]);
@@ -463,7 +463,7 @@ function openerp_pos_devices(instance,module){ //module is instance.point_of_sal
                     //    self.on_ean(codeNumbers.join(''));
                     //    codeNumbers = [];
 				} else if(e.keyCode == 13) {
-					if (codeNumbers.length == 13 || codeNumbers.length == 14) {
+					if (codeNumbers.length == 12 || codeNumbers.length == 13 || codeNumbers.length == 14) {
 						self.on_ean(codeNumbers.join(''))
 						codeNumbers = []
 					}
