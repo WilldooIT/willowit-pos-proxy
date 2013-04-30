@@ -367,14 +367,21 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
 			this.discountNote = ""
             this.line_type_code = ""
             this.line_note = ""
+			this.manual_discount = false;
             this.type = 'unit';
             this.selected = false;
         },
         // sets a discount [0,100]%
-        set_discount: function(discount){
+        set_discount: function(discount,auto){
             var disc = Math.min(Math.max(parseFloat(discount) || 0, 0),100);
             this.discount = disc;
-            this.discountStr = '' + disc;
+			this.manual_discount = (disc != 0) && (auto == undefined || auto == false);
+			if(this.manual_discount) {
+				this.discountStr = '' + disc + '(M)';
+			} else {
+				this.discountStr = '' + disc;
+			}
+				
             this.trigger('change');
         },
         // returns the discount [0,100]%
@@ -706,7 +713,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
 				totalLinesQty12 = 0
 				totalLinesQty6 = 0
 				_.each(lines.models,function(line) {
-					line.product.set("taxes_id",line.pos.get("products").get(line.product.id).get("taxes_id"))
+					line.product.set("taxes_id",self.pos.db.get_product_by_id(line.product.id).taxes_id)
 					totalQuantity += line.quantity
 //					if(line.product.get("discount_program_in_store_6")) {
 //						totalLinesQty6 += line.quantity
@@ -718,23 +725,24 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
 
 //				if(totalLinesQty12 >= 12) {
 				if(totalQuantity >= 12) {
-					discount = 0.2
+					discount = 0.15
 					_.each(lines.models,function(line) {
-						if(line.product.get("discount_program_in_store_12")) {
-							line.set_discount(discount * 100)
+						if(line.product.get("discount_program_in_store_12") && !line.manual_discount) {
+							line.set_discount(discount * 100,true)
 						}
 					})
 //				} else if(totalLinesQty6 >= 6) {
 				} else if(totalQuantity >= 6) {
 					discount = 0.1
 					_.each(lines.models,function(line) {
-						if(line.product.get("discount_program_in_store_6")) {
-							line.set_discount(discount * 100)
+						if(line.product.get("discount_program_in_store_6") && !line.manual_discount) {
+							line.set_discount(discount * 100,true)
 						}
 					})
 				} else {
 					_.each(lines.models,function(line) {
-						line.set_discount(0)
+						if(!line.manual_discount)
+							line.set_discount(0,true);
 					});
 				}
 			}
