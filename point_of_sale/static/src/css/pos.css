@@ -222,7 +222,9 @@
 }
 
 /*  c) The session buttons */
-
+#refund-mode-button,#write-on-mode-button,#write-off-mode-button {
+	display:none;
+}
 .point-of-sale #rightheader .header-button{
     float:right;
     height:32px;
