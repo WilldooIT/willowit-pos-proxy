@@ -865,6 +865,9 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                 self.$('.neworder-button').click(function(){
                     self.pos.add_new_order();
                 });
+                self.$('.void-button').click(function(){
+                    self.pos.clear_current_order();
+                });
                 self.$("#sale-mode-button").click(_.bind(self.saleButtonClicked,self));
                 self.$("#refund-mode-button").click(_.bind(self.refundButtonClicked,self));
                 self.$("#write-on-mode-button").click(_.bind(self.writeOnButtonClicked,self));

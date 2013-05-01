@@ -19,6 +19,7 @@
                     </div>
                     <div id="order-selector">
                         <button class="neworder-button">+</button>
+						<button class="void-button">Void</button>
                         <ol id="orders"></ol>
                     </div>
                     <!-- here goes header buttons -->
