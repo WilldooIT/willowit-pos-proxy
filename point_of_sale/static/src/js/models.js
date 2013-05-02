@@ -275,6 +275,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
 			selOrder.get("orderLines").each(function(l) { selOrder.removeOrderline(l);})
 			selOrder.removeOrderline(selOrder.selected_orderline)
 			selOrder.get("paymentLines").each(function(l) {selOrder.get("paymentLines").remove(l);})
+			selOrder.set("scan_unlocked",false)
 			this.trigger("change")
 		},
         // attemps to send all pending orders ( stored in the pos_db ) to the server,
@@ -650,6 +651,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 paymentLines:   new module.PaymentlineCollection(),
                 name:           "Order " + this.generateUniqueId(),
                 client:         null,
+				scan_unlocked:	false,
             });
             this.pos =     attributes.pos; 
             this.selected_orderline = undefined;
@@ -662,6 +664,10 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             return new Date().getTime();
         },
         addProduct: function(product, options){
+			if(!self.get("scan_unlocked")) {
+				alert("Please scan in to make a sale")
+				return
+			}
             options = options || {};
             var attr = product.toJSON();
             attr.pos = this.pos;

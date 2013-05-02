@@ -223,6 +223,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                          "pos_id":this.pos.get("pos_config").id})
                     this.pos_widget.screen_selector.set_user_mode('cashier');
                     this.set_button_visibility(users[i])
+					this.pos.get("selectedOrder").set("scan_unlocked",true)
                     return true;
                 }
             }

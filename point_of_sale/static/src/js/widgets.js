@@ -127,6 +127,10 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     console.warn('TODO should not get there...?');
                     return;
                 }
+				if(!self.pos.get("selectedOrder").get("scan_unlocked")) {
+					alert("Please scan in to make a sale")
+					return
+				}
                 mode = self.pos.get("selectedOrder").transaction_mode
                 if(mode == "refund" || mode == "w_on" || mode == "w_off") {
                     var allLinesCommented = true
