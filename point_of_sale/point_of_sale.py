@@ -227,6 +227,17 @@ class pos_session(osv.osv):
                                     readonly=True,
                                     states={'opening_control' : [('readonly', False)]}
                                    ),
+        'start_user_id' : fields.many2one('res.users', 'Responsible for session opening',
+                                    required=True,
+                                    select=1,
+                                    readonly=True,
+                                    states={'opening_control' : [('readonly', False)]}
+                                   ),
+        'end_user_id' : fields.many2one('res.users', 'Responsible for session closing',
+                                    select=1,
+                                    readonly=True,
+                                    states={'closing_control' : [("required",True),('readonly', False)]}
+                                   ),
         'start_at' : fields.datetime('Opening Date', readonly=True), 
         'stop_at' : fields.datetime('Closing Date', readonly=True),
 
@@ -1212,7 +1223,8 @@ class pos_order_line(osv.osv):
         prod = self.pool.get('product.product').browse(cr, uid, product, context=context)
 
         price = price_unit * (1 - (discount or 0.0) / 100.0)
-        if line.line_type_code in ["W_ON","W_OFF"]:
+        line = self.browse(cr,uid,ids and ids[0] or [],context=context)
+        if line and line.line_type_code in ["W_ON","W_OFF"]:
             taxes = account_tax_obj.compute_all(cr, uid, [], price, qty, product=prod, partner=False)
         else:
             taxes = account_tax_obj.compute_all(cr, uid, prod.taxes_id, price, qty, product=prod, partner=False)

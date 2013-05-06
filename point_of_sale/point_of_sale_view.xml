@@ -894,7 +894,9 @@
                         <group>
                             <field name="cash_control" invisible="1" />
                             <group>
-                                <field name="user_id"/>
+                                <field name="user_id" invisible="1"/>
+                                <field name="start_user_id" attrs="{'invisible':[('state','!=','opening_control')]}" />
+                                <field name="end_user_id" attrs="{'invisible':[('state','!=','closing_control')]}" />
                                 <field name="config_id"/>
                             </group>
                             <group>
