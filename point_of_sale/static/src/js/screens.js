@@ -336,9 +336,14 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             });
             users = self.pos.get("user_list")
             for(i in users) {
-                if(users[i].id == self.pos.get("uid")) {
+				user = self.pos.get("cashier")
+				if(user) {
+					uid = user.id 
+				} else {
+					uid = self.pos.get("uid")
+				}
+                if(users[i].id == uid) {
                     this.set_button_visibility(users[i])
-
                 }
             }
         },
@@ -969,6 +974,9 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             var currentOrder = this.pos.get('selectedOrder');
 
             this.pos.push_order(currentOrder.exportAsJSON()) 
+			this.pos.set("cashier",null);
+            this.pos_widget.refreshForMode(this.pos_widget)
+			this.pos_widget.screen_selector.current_screen.set_button_visibility(this.pos.get("user"))
             if(this.pos.iface_print_via_proxy){
                 this.pos.proxy.print_receipt(currentOrder.export_for_printing());
                 this.pos.get('selectedOrder').destroy();    //finish order and go back to scan screen
