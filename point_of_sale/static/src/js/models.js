@@ -271,12 +271,9 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             this.set('selectedOrder', order);
         },
 		clear_current_order: function() {
-			selOrder = this.get('selectedOrder')
-			selOrder.get("orderLines").each(function(l) { selOrder.removeOrderline(l);})
-			selOrder.removeOrderline(selOrder.selected_orderline)
-			selOrder.get("paymentLines").each(function(l) {selOrder.get("paymentLines").remove(l);})
-			selOrder.set("scan_unlocked",false)
-			this.trigger("change")
+            this.get("selectedOrder").destroy()
+            this.set("cashier",null)
+            screen_selector.current_screen.set_button_visibility(screen_selector.pos.get("user"))
 		},
         // attemps to send all pending orders ( stored in the pos_db ) to the server,
         // and remove the successfully sent ones from the db once
