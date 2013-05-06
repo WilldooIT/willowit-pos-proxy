@@ -184,6 +184,14 @@
 #reason-button {
     display:none;
 }
+#orderline_text {
+	font-size:18pt;
+	height:70px;
+}
+#reason-ok-button {
+	padding:25px;
+	font-size:18pt;
+}
 .point-of-sale div#order-selector {
     display: inline;
 }
