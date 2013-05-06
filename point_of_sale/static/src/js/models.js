@@ -601,19 +601,26 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
         },
         //sets the amount of money on this payment line
         set_amount: function(value){
-
             mode = self.pos.get("selectedOrder").transaction_mode
             if(mode == "refund" || mode == "w_on") {
-                this.amount =  0 - (parseFloat(value) || 0);
+				amt = 0 - (parseFloat(value) || 0);
+				if(amt)
+					this.amount = amt.toFixed(2)
+				else
+					this.amount = amt
                 this.trigger('change');
             } else {
-                this.amount = parseFloat(value) || 0;
+                amt = parseFloat(value) || 0;
+				if(amt)
+					this.amount = amt.toFixed(2)
+				else
+					this.amount = amt
                 this.trigger('change');
             }
         },
         // returns the amount of money on this paymentline
         get_amount: function(){
-            return this.amount;
+            return parseFloat(this.amount) || 0;
         },
         // returns the associated cashRegister
         get_cashregister: function(){
@@ -805,14 +812,18 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
         },
         getPaidTotal: function() {
             return (this.get('paymentLines')).reduce((function(sum, paymentLine) {
-                return sum + paymentLine.get_amount();
+                amt =  (sum + paymentLine.get_amount()) 
+				if(amt) 
+					return amt.toFixed(2);
+				else
+					return amt
             }), 0);
         },
         getChange: function() {
-            return this.getPaidTotal() - this.getTotalTaxIncluded();
+            return (this.getPaidTotal() - this.getTotalTaxIncluded()).toFixed(2);
         },
         getDueLeft: function() {
-            return this.getTotalTaxIncluded() - this.getPaidTotal();
+            return (this.getTotalTaxIncluded() - this.getPaidTotal()).toFixed(2);
         },
         // sets the type of receipt 'receipt'(default) or 'invoice'
         set_receipt_type: function(type){
