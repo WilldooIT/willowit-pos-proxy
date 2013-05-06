@@ -377,6 +377,13 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
         },
         // sets a discount [0,100]%
         set_discount: function(discount,auto){
+            this.set_discount_silent(discount,auto)
+			if(discount == 0) {
+				this.order.recalculateDiscount()
+			}
+            this.trigger("change")
+        },
+        set_discount_silent: function(discount,auto) {
             var disc = Math.min(Math.max(parseFloat(discount) || 0, 0),100);
             this.discount = disc;
 			this.manual_discount = (disc != 0) && (auto == undefined || auto == false);
@@ -385,8 +392,6 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
 			} else {
 				this.discountStr = '' + disc;
 			}
-				
-            this.trigger('change');
         },
         // returns the discount [0,100]%
         get_discount: function(){
@@ -402,6 +407,10 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
         // product's unity of measure properties. Quantities greater than zero will not get 
         // rounded to zero
         set_quantity: function(quantity){
+            this.set_quantity_silent(quantity)
+            this.order.recalculateDiscount()
+        },
+        set_quantity_silent: function(quantity) {
             if(quantity === 'remove'){
                 this.order.removeOrderline(this);
                 return;
@@ -410,7 +419,8 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 this.quantity    = quant;
                 this.quantityStr = '' + this.quantity;
             } else {    
-                var quant = Math.max(parseFloat(quantity) || 0, 0);
+                //var quant = Math.max(parseFloat(quantity) || 0, 0);
+                var quant = Math.abs(parseFloat(quantity) || 0)
                 var unit = this.get_unit();
                 if(unit && unit.rounding > 0){
                     this.quantity    = Math.max(unit.rounding, Math.round(quant / unit.rounding) * unit.rounding);
@@ -420,8 +430,6 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                     this.quantityStr = '' + this.quantity;
                 }
             }
-            this.order.recalculateDiscount()
-            this.trigger('change');
         },
         // return the quantity of product
         get_quantity: function(){
@@ -689,7 +697,6 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 this.get('orderLines').add(line);
             }
             this.selectLine(this.getLastOrderline());
-            this.negateAllLines();
             this.recalculateDiscount() 
             this.pos.proxy.message("display_product",{
                 "name":line.product.get("name"),
@@ -697,68 +704,65 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 "discount":line.discount,
                 });
         },
-        negateAllLines: function() {
-            self = this
-            lines = this.get("orderLines")
-            _.each(lines.models,function(line) {
-                line.line_type_code = self.transaction_mode && self.transaction_mode.toUpperCase() || "NORMAL"
-                if(self.transaction_mode == "refund" || self.transaction_mode == "w_on") {
-                    line.set_quantity(0-Math.abs(line.quantity))
-                } else {
-                    line.set_quantity(Math.abs(line.quantity))
-                }
-            })
-        },
         recalculateDiscount: function() {
+            self = this;
             lines = this.get("orderLines")
 			if(this.transaction_mode == "w_on" || this.transaction_mode == "w_off") {
 				_.each(lines.models,function(line) {
-					line.set_discount(0)
+					line.set_discount_silent(0)
 					line.product = line.product.clone()
 					line.product.set("taxes_id",[])
+                    
+                    line.set_quantity_silent(Math.abs(line.quantity))
+                    //if(self.transaction_mode == "w_off") {
+                    //    line.set_quantity_silent(0-Math.abs(line.quantity))
+                    //} else {
+                    //    line.set_quantity_silent(Math.abs(line.quantity))
+                    //}
+                    line.trigger("change")       
 				})
 			} else {
 				totalQuantity = 0
-				totalLinesQty12 = 0
-				totalLinesQty6 = 0
+                //set quantities, taxes based on transaction mode
 				_.each(lines.models,function(line) {
-					line.product.set("taxes_id",self.pos.db.get_product_by_id(line.product.id).taxes_id)
-					totalQuantity += line.quantity
-//					if(line.product.get("discount_program_in_store_6")) {
-//						totalLinesQty6 += line.quantity
-//					} 
-//					if(line.product.get("discount_program_in_store_12")) {
-//						totalLinesQty12 += line.quantity
-//					} 
+					totalQuantity += Math.abs(line.quantity)
+                    line.line_type_code = self.transaction_mode && self.transaction_mode.toUpperCase() || "NORMAL"
+                   // if(self.transaction_mode == "refund") {
+                   //     line.set_quantity_silent(0-Math.abs(line.quantity))
+                   // } else {
+                   //     line.set_quantity_silent(Math.abs(line.quantity))
+                   // }
+                    line.product.set("taxes_id",self.pos.db.get_product_by_id(line.product.id).taxes_id)
 				})
+                _.each(lines.models, function(line) {
+                    if( !line.manual_discount && self.transaction_mode == "refund")  {
+                        line.set_discount_silent(0,true);
+                    } else {
+                        if( totalQuantity >= 12 &&
+                            line.product.get("discount_program_in_store_12") && 
+                            !line.manual_discount) {
+							line.set_discount_silent(15,true)
+						}
+                        if( totalQuantity >= 6 &&
+							totalQuantity < 12 &&
+                            line.product.get("discount_program_in_store_6") && 
+                            !line.manual_discount) {
+							line.set_discount_silent(10,true)
+                        } 
+						if(totalQuantity < 6) {
+							line.set_discount_silent(0,true)
+						}
 
-//				if(totalLinesQty12 >= 12) {
-				if(totalQuantity >= 12) {
-					discount = 0.15
-					_.each(lines.models,function(line) {
-						if(line.product.get("discount_program_in_store_12") && !line.manual_discount) {
-							line.set_discount(discount * 100,true)
-						}
-					})
-//				} else if(totalLinesQty6 >= 6) {
-				} else if(totalQuantity >= 6) {
-					discount = 0.1
-					_.each(lines.models,function(line) {
-						if(line.product.get("discount_program_in_store_6") && !line.manual_discount) {
-							line.set_discount(discount * 100,true)
-						}
-					})
-				} else {
-					_.each(lines.models,function(line) {
-						if(!line.manual_discount)
-							line.set_discount(0,true);
-					});
-				}
-			}
+                    }
+                    line.set_quantity_silent(Math.abs(line.quantity))
+                    line.trigger("change")       
+                })
+            }
         },
         removeOrderline: function( line ){
             this.get('orderLines').remove(line);
             this.selectLine(this.getLastOrderline());
+            this.recalculateDiscount()
         },
         getLastOrderline: function(){
             return this.get('orderLines').at(this.get('orderLines').length -1);
