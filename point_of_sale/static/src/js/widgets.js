@@ -69,7 +69,13 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
 
         },
         clickReason: function() {
-            this.pos_widget.screen_selector.show_popup("reason")
+			if(this.pos.get("selectedOrder").selected_orderline) {
+				t_type = this.pos.get("selectedOrder").transaction_mode
+				this.pos_widget.screen_selector.show_popup("reason")
+				$("#orderline_text")[0].value = ""
+				$("#orderline_text option").hide()
+				$("option.op_" + t_type).show()
+			}
         },
         clickDeleteLastChar: function() {
             return this.state.deleteLastChar();
@@ -941,8 +947,8 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     $("#reason-button").fadeOut()
                     $("#paypad button[data-adjustment-method='true']").fadeOut()
                     $("#paypad button[data-adjustment-method='false']").fadeIn()
-                    self.pos.get("selectedOrder").negateAllLines()    
-                    self.pos.trigger("change")
+					self.pos.get("selectedOrder").recalculateDiscount()
+                    self.pos.get("selectedOrder").trigger("change")    
                     break;
                 case "refund":
                     $("#topheader").addClass("active")
@@ -950,8 +956,7 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     $("#reason-button").fadeIn()
                     $("#paypad button[data-adjustment-method='true']").fadeOut()
                     $("#paypad button[data-adjustment-method='false']").fadeIn()
-                    self.pos.get("selectedOrder").negateAllLines()    
-                    self.pos.trigger("change")
+					self.pos.get("selectedOrder").recalculateDiscount()
                     break;
                 case "w_on":
                     $("#topheader").addClass("active")
@@ -959,8 +964,7 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     $("#reason-button").fadeIn()
                     $("#paypad button").fadeOut()
                     $("#paypad button[data-adjustment-method='true']").fadeIn()
-                    self.pos.get("selectedOrder").negateAllLines()    
-                    self.pos.trigger("change")
+					self.pos.get("selectedOrder").recalculateDiscount()
                     break;
                 case "w_off":
                     $("#topheader").addClass("active")
@@ -968,8 +972,7 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     $("#reason-button").fadeIn()
                     $("#paypad button").fadeOut()
                     $("#paypad button[data-adjustment-method='true']").fadeIn()
-                    self.pos.get("selectedOrder").negateAllLines()    
-                    self.pos.trigger("change")
+					self.pos.get("selectedOrder").recalculateDiscount()
                     break;
             }
         },

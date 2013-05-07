@@ -386,9 +386,15 @@
                 <hr />
                 <!-- <textarea name="_orderline_text" id="orderline_text"><t t-esc=" widget.orderline_text || ''" /></textarea> -->
                 <select id="orderline_text">
-                    <option value="faulty product">Product was Faulty</option>
-                    <option value="change of mind">Change of Mind</option>
-                    <option value="wrong item">Purchased wrong Item</option>
+                    <option class="op_refund" value="faulty product">Product was Faulty</option>
+                    <option class="op_refund" value="change of mind">Change of Mind</option>
+                    <option class="op_refund" value="wrong item">Purchased wrong Item</option>
+                    <option class="op_w_off" value="wine tasting">Wine Tasting</option>
+                    <option class="op_w_off" value="staff training">Staff Training</option>
+					<option class="op_w_off" value="trasnfer out">Store Transfer Out</option>
+                    <option class="op_w_off" value="stocktake adjustment w/off">Stocktake Adjustment</option>
+                    <option class="op_w_on" value="stocktake adjustment w/on">Stocktake Adjustment</option>
+                    <option class="op_w_on" value="transfer in">Store Transfer In</option>
                 </select>
                 <button id="reason-ok-button">Ok</button>
             </div>
