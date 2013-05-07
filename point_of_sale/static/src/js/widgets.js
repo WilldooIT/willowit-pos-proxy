@@ -688,15 +688,11 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
         },
         get_name: function(){
             var user;
-            if(this.mode === 'cashier'){
-                user = this.pos.get('cashier') || this.pos.get('user');
-            }else{
-                user = this.pos.get('selectedOrder').get_client()  || this.pos.get('user');
-            }
+			user = this.pos.get('selectedOrder').get("cashier");
             if(user){
                 return user.name;
             }else{
-                return "";
+                return "[Not Scanned In]";
             }
         },
     });

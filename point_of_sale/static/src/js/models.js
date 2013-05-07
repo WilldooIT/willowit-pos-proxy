@@ -269,6 +269,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             var order = new module.Order({pos:this});
             this.get('orders').add(order);
             this.set('selectedOrder', order);
+			screen_selector.current_screen.set_button_visibility(this.get("user"))
         },
 		clear_current_order: function() {
             this.get("selectedOrder").destroy()
@@ -663,6 +664,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 paymentLines:   new module.PaymentlineCollection(),
                 name:           "Order " + this.generateUniqueId(),
                 client:         null,
+				cashier:		null,
 				scan_unlocked:	false,
             });
             this.pos =     attributes.pos; 

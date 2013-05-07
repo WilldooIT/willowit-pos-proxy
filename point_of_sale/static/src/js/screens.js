@@ -216,7 +216,6 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             for(var i = 0, len = users.length; i < len; i++){
                 if(users[i].ean13 === ean.ean){
                     this.pos.set('cashier',users[i]);
-                    this.pos_widget.username.refresh();
                     this.pos.proxy.cashier_mode_activated();
                     this.pos.proxy.message("employee_scan",
                         {"employee_uid":this.pos.get("cashier").id,
@@ -224,6 +223,8 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                     this.pos_widget.screen_selector.set_user_mode('cashier');
                     this.set_button_visibility(users[i])
 					this.pos.get("selectedOrder").set("scan_unlocked",true)
+                    this.pos.get("selectedOrder").set('cashier',users[i]);
+                    this.pos_widget.username.refresh();
                     return true;
                 }
             }
@@ -325,7 +326,6 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             }else{
                 this.pos_widget.close_button.hide();
             }
-            
             this.pos_widget.username.set_user_mode(this.pos_widget.screen_selector.get_user_mode());
 
             this.pos.barcode_reader.set_action_callback({
@@ -334,18 +334,18 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                 'client' : self.barcode_client_action ?  function(ean){ self.barcode_client_action(ean);  } : undefined ,
                 'discount': self.barcode_discount_action ? function(ean){ self.barcode_discount_action(ean); } : undefined,
             });
-            users = self.pos.get("user_list")
-            for(i in users) {
-				user = self.pos.get("cashier")
-				if(user) {
-					uid = user.id 
-				} else {
+        	selectedOrderUser = self.pos.get("selectedOrder").get("cashier");
+			if(selectedOrderUser) {
+				this.set_button_visibility(selectedOrderUser)
+			} else {
+				users = self.pos.get("user_list")
+				for(i in users) {
 					uid = self.pos.get("uid")
+					if(users[i].id == uid) {
+						this.set_button_visibility(users[i])
+					}
 				}
-                if(users[i].id == uid) {
-                    this.set_button_visibility(users[i])
-                }
-            }
+			}
         },
 
         // this method is called when the screen is closed to make place for a new screen. this is a good place
