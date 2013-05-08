@@ -941,15 +941,16 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     $("#topheader").removeClass("active")
                     $("#sale-mode-button").addClass("active")
                     $("#reason-button").fadeOut()
+					$(".order-container").css("bottom","361px");
                     $("#paypad button[data-adjustment-method='true']").fadeOut()
                     $("#paypad button[data-adjustment-method='false']").fadeIn()
 					self.pos.get("selectedOrder").recalculateDiscount()
-                    self.pos.get("selectedOrder").trigger("change")    
                     break;
                 case "refund":
                     $("#topheader").addClass("active")
                     $("#refund-mode-button").addClass("active")
                     $("#reason-button").fadeIn()
+					$(".order-container").css("bottom","426px");
                     $("#paypad button[data-adjustment-method='true']").fadeOut()
                     $("#paypad button[data-adjustment-method='false']").fadeIn()
 					self.pos.get("selectedOrder").recalculateDiscount()
@@ -958,6 +959,7 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     $("#topheader").addClass("active")
                     $("#write-on-mode-button").addClass("active")
                     $("#reason-button").fadeIn()
+					$(".order-container").css("bottom","426px");
                     $("#paypad button").fadeOut()
                     $("#paypad button[data-adjustment-method='true']").fadeIn()
 					self.pos.get("selectedOrder").recalculateDiscount()
@@ -966,6 +968,7 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     $("#topheader").addClass("active")
                     $("#write-off-mode-button").addClass("active")
                     $("#reason-button").fadeIn()
+					$(".order-container").css("bottom","426px");
                     $("#paypad button").fadeOut()
                     $("#paypad button[data-adjustment-method='true']").fadeIn()
 					self.pos.get("selectedOrder").recalculateDiscount()
