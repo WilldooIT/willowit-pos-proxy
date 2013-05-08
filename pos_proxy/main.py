@@ -57,22 +57,10 @@ Requests are dispatched based upon the request path.
                 #discount = rpc_call["params"]["discount"]
                 #self.vfd_cook("vfd_item",{"name":name,"price":price,"discount":discount}) , 
                 return Response("")
-            elif request.path == "/pos/employee_scan":
-                r = request.args.get("r")
-                rpc_call = json.loads(r)
-                user_id = rpc_call["params"]["employee_uid"]
-                pos_id = rpc_call["params"]["pos_id"]
-                self.scan_event(user_id,pos_id)
-                return Response("")
             else:
                 return Response("")
         run_simple("0.0.0.0",self.config["listen_port"],application)
     
-    def scan_event(self,user_id,pos_id):
-        """ records an employee scan event, timestamps it, and sends it to the scan syncer """
-        if self.scan_syncer:
-            time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-            self.scan_syncer.register_scan({"employee_uid":user_id,"pos_id":pos_id,"time":time})
 
             
 
