@@ -269,12 +269,14 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             var order = new module.Order({pos:this});
             this.get('orders').add(order);
             this.set('selectedOrder', order);
-			screen_selector.current_screen.set_button_visibility(this.get("user"))
+			screen_selector.current_screen.set_button_visibility()
         },
 		clear_current_order: function() {
             this.get("selectedOrder").destroy()
             this.set("cashier",null)
-            screen_selector.current_screen.set_button_visibility(screen_selector.pos.get("user"))
+			selectedOrder = this.get("orders").first()
+			this.set("selectedOrder",selectedOrder)
+            screen_selector.current_screen.set_button_visibility(selectedOrder.get("cashier"))
 		},
         // attemps to send all pending orders ( stored in the pos_db ) to the server,
         // and remove the successfully sent ones from the db once
@@ -814,11 +816,8 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
         },
         getPaidTotal: function() {
             return (this.get('paymentLines')).reduce((function(sum, paymentLine) {
-                amt =  (sum + paymentLine.get_amount()) 
-				if(amt) 
-					return amt.toFixed(2);
-				else
-					return amt
+                amt =  parseFloat(((sum + paymentLine.get_amount()) || 0).toFixed(2)) 
+				return amt
             }), 0);
         },
         getChange: function() {

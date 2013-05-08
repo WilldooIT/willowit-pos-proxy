@@ -164,20 +164,21 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             $(".mode-button[data-mode='discount']").hide()
             $(".mode-button[data-mode='price']").hide()
             $("#refund-mode-button").hide() 
+			if(user) {
+				if(user.can_refund) {
+					$("#refund-mode-button").fadeIn()
+				}
+				
+				if(user.can_adjust) {
+					$("#write-off-mode-button").fadeIn()
+					$("#write-on-mode-button").fadeIn()
+					$(".mode-button[data-mode='price']").fadeIn()
+				}
 
-            if(user.can_refund) {
-                $("#refund-mode-button").fadeIn()
-            }
-            
-            if(user.can_adjust) {
-                $("#write-off-mode-button").fadeIn()
-                $("#write-on-mode-button").fadeIn()
-                $(".mode-button[data-mode='price']").fadeIn()
-            }
-
-            if(user.can_discount) {
-                $(".mode-button[data-mode='discount']").fadeIn()
-            } 
+				if(user.can_discount) {
+					$(".mode-button[data-mode='discount']").fadeIn()
+				} 
+			}
             if(this.pos_widget) {
                 this.pos_widget.refreshForMode(this.pos_widget)
             }
@@ -335,17 +336,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                 'discount': self.barcode_discount_action ? function(ean){ self.barcode_discount_action(ean); } : undefined,
             });
         	selectedOrderUser = self.pos.get("selectedOrder").get("cashier");
-			if(selectedOrderUser) {
-				this.set_button_visibility(selectedOrderUser)
-			} else {
-				users = self.pos.get("user_list")
-				for(i in users) {
-					uid = self.pos.get("uid")
-					if(users[i].id == uid) {
-						this.set_button_visibility(users[i])
-					}
-				}
-			}
+			this.set_button_visibility(selectedOrderUser)
         },
 
         // this method is called when the screen is closed to make place for a new screen. this is a good place
@@ -830,8 +821,8 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
         show: function(){
             this._super();
             var self = this;
-
-            this.product_categories_widget.reset_category();
+			if(!this.pos.get("cashier"))
+				this.product_categories_widget.reset_category();
 
             this.pos_widget.order_widget.set_numpad_state(this.pos_widget.numpad.state);
             if(this.pos.iface_vkeyboard){
@@ -950,7 +941,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                 });
             
             this.validate_button = this.add_action_button({
-                    label: 'Validate',
+                    label: 'Confirm',
                     name: 'validation',
                     icon: '/point_of_sale/static/src/img/icons/png48/validate.png',
                     click: function(){
@@ -1060,7 +1051,12 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             }
                 
             if(this.pos_widget.action_bar){
-                this.pos_widget.action_bar.set_button_disabled('validation', remaining > 0);
+				mode = this.pos.get("selectedOrder").transaction_mode
+				if(mode == "refund" || mode == "w_on" || mode == "w_off") {
+					this.pos_widget.action_bar.set_button_disabled('validation', parseFloat(remaining.toFixed(2)) != 0);
+				} else { 
+					this.pos_widget.action_bar.set_button_disabled('validation', parseFloat(remaining.toFixed(2)) > 0);
+				}
             }
         },
         set_numpad_state: function(numpadState) {
