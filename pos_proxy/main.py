@@ -9,46 +9,6 @@ import formatter
 import shelve
 import datetime 
 
-class ScanSyncer:
-    """
-This class spawns a timer, and polls the persistant dictionary (self.db) for any additions. 
-If anything is found, it sends it to our local openerp server for processing. 
-    """
-    def __init__(self,config): 
-        self.config = config
-        if config["scan_system_active"]:
-            self.openerp_client = ObjectInspector(config["scan_db_name"],config["scan_db_user"],config["scan_db_pass"],"wexi.scan.event")
-            self.db = shelve.open(".ss_outbox.dat")
-            if not self.db.has_key("outbox"):
-                self.db["outbox"] = []
-            self.lock = Lock()
-        else:
-            self.openerp_client = False
-
-        if self.openerp_client:
-            self.timer = Timer(self.config["scan_sync_delay"],self.sync)
-            self.timer.start()
-
-    def sync(self):
-        try:
-            if self.timer:
-                self.timer.cancel()
-                del self.timer
-            if self.db["outbox"]:
-                with self.lock:
-                    to_send = self.db["outbox"]
-                    self.openerp_client.call("scan",to_send)
-                    self.db["outbox"] = []
-        except:
-            # yes, this is terrible form, but  the tiimer must be reset.
-            pass
-        self.timer = Timer(self.config["scan_sync_delay"],self.sync)
-        self.timer.start()
- 
-    def register_scan(self,scan_event_obj):
-        if self.config["scan_system_active"]:
-            with self.lock:
-                self.db["outbox"] = self.db["outbox"] + [scan_event_obj]
             
 class PosProxy:
     """
@@ -61,10 +21,6 @@ Requests are dispatched based upon the request path.
     def __init__(self):
         self.config = json.load(open("config.json"))
         cookbook = open(self.config["cookbook"]).read()
-        if self.config["scan_system_active"]:
-            self.scan_syncer = ScanSyncer(self.config)
-        else:
-            self.scan_syncer = False
 
         self.printers = {}
         for (p_name,printer) in self.config["printers"].iteritems():

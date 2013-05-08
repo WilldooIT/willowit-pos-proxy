@@ -218,9 +218,6 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                 if(users[i].ean13 === ean.ean){
                     this.pos.set('cashier',users[i]);
                     this.pos.proxy.cashier_mode_activated();
-                    this.pos.proxy.message("employee_scan",
-                        {"employee_uid":this.pos.get("cashier").id,
-                         "pos_id":this.pos.get("pos_config").id})
                     this.pos_widget.screen_selector.set_user_mode('cashier');
                     this.set_button_visibility(users[i])
 					this.pos.get("selectedOrder").set("scan_unlocked",true)
