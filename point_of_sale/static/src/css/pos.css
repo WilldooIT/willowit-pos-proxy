@@ -330,7 +330,7 @@
     vertical-align: top;
 }
 .point-of-sale #paypad button {
-    height: 50px;
+    height: 65px;
     width: 208px;
     margin: 0px -6px 4px -2px;
     font-weight: bold;
@@ -363,8 +363,8 @@
     text-align: right;
 }
 .point-of-sale #numpad button {
-    height: 50px;
-    width: 50px;
+    height: 65px;
+    width: 65px;
     margin: 0px 0px 4px 0px;
     font-weight: bold;
     vertical-align: middle;
@@ -992,7 +992,7 @@
 .point-of-sale .order-container{
     position: absolute;
     top: 0px;
-    bottom: 232px;
+    bottom: 361px;
     width:100%;
     background: #F0EEEE;
 }
