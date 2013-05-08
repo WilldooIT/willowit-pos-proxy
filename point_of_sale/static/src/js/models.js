@@ -760,7 +760,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                             !line.manual_discount) {
 							line.set_discount_silent(10,true)
                         } 
-						if(totalQuantity < 6) {
+						if(totalQuantity < 6 && !line.manual_discount) {
 							line.set_discount_silent(0,true)
 						}
 
