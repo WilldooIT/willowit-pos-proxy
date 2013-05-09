@@ -253,9 +253,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             if( this.get('orders').isEmpty()){
                 this.add_new_order();
             }
-            if( this.get('selectedOrder') === removed_order){
-                this.set({ selectedOrder: this.get('orders').last() });
-            }
+			this.set({ selectedOrder: this.get('orders').last() });
         },
 
         // saves the order locally and try to send it to the backend. 'record' is a bizzarely defined JSON version of the Order
