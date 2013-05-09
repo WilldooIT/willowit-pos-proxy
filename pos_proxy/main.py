@@ -78,10 +78,10 @@ Requests are dispatched based upon the request path.
                 if printer["type"] == "local":
                     print "attempting to print to printer '%s' (%s)" % (p_name,receipt["receipt_type"])
                     try:
-                        printer = open(printer["device"],"w")
-                        printer.write(output)
-                        printer.flush()
-                        printer.close()
+                        printer_file = open(printer["device"],"w")
+                        printer_file.write(output)
+                        printer_file.flush()
+                        printer_file.close()
 
                     except Exception,e:
                         print e
