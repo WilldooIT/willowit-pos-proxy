@@ -253,9 +253,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             if( this.get('orders').isEmpty()){
                 this.add_new_order();
             }
-            if( this.get('selectedOrder') === removed_order){
-                this.set({ selectedOrder: this.get('orders').last() });
-            }
+			this.set({ selectedOrder: this.get('orders').last() });
         },
 
         // saves the order locally and try to send it to the backend. 'record' is a bizzarely defined JSON version of the Order
@@ -269,8 +267,15 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             var order = new module.Order({pos:this});
             this.get('orders').add(order);
             this.set('selectedOrder', order);
+			screen_selector.current_screen.set_button_visibility()
         },
-
+		clear_current_order: function() {
+            this.get("selectedOrder").destroy()
+            this.set("cashier",null)
+			selectedOrder = this.get("orders").first()
+			this.set("selectedOrder",selectedOrder)
+            screen_selector.current_screen.set_button_visibility(selectedOrder.get("cashier"))
+		},
         // attemps to send all pending orders ( stored in the pos_db ) to the server,
         // and remove the successfully sent ones from the db once
         // it has been confirmed that they have been sent correctly.
@@ -367,15 +372,27 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
 			this.discountNote = ""
             this.line_type_code = ""
             this.line_note = ""
+			this.manual_discount = false;
             this.type = 'unit';
             this.selected = false;
         },
         // sets a discount [0,100]%
-        set_discount: function(discount){
+        set_discount: function(discount,auto){
+            this.set_discount_silent(discount,auto)
+			if(discount == 0) {
+				this.order.recalculateDiscount()
+			}
+            this.trigger("change")
+        },
+        set_discount_silent: function(discount,auto) {
             var disc = Math.min(Math.max(parseFloat(discount) || 0, 0),100);
             this.discount = disc;
-            this.discountStr = '' + disc;
-            this.trigger('change');
+			this.manual_discount = (disc != 0) && (auto == undefined || auto == false);
+			if(this.manual_discount) {
+				this.discountStr = '' + disc + '(M)';
+			} else {
+				this.discountStr = '' + disc;
+			}
         },
         // returns the discount [0,100]%
         get_discount: function(){
@@ -391,6 +408,10 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
         // product's unity of measure properties. Quantities greater than zero will not get 
         // rounded to zero
         set_quantity: function(quantity){
+            this.set_quantity_silent(quantity)
+            this.order.recalculateDiscount()
+        },
+        set_quantity_silent: function(quantity) {
             if(quantity === 'remove'){
                 this.order.removeOrderline(this);
                 return;
@@ -399,7 +420,8 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 this.quantity    = quant;
                 this.quantityStr = '' + this.quantity;
             } else {    
-                var quant = Math.max(parseFloat(quantity) || 0, 0);
+                //var quant = Math.max(parseFloat(quantity) || 0, 0);
+                var quant = Math.abs(parseFloat(quantity) || 0)
                 var unit = this.get_unit();
                 if(unit && unit.rounding > 0){
                     this.quantity    = Math.max(unit.rounding, Math.round(quant / unit.rounding) * unit.rounding);
@@ -409,8 +431,6 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                     this.quantityStr = '' + this.quantity;
                 }
             }
-            this.order.recalculateDiscount()
-            this.trigger('change');
         },
         // return the quantity of product
         get_quantity: function(){
@@ -582,19 +602,26 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
         },
         //sets the amount of money on this payment line
         set_amount: function(value){
-
             mode = self.pos.get("selectedOrder").transaction_mode
             if(mode == "refund" || mode == "w_on") {
-                this.amount =  0 - (parseFloat(value) || 0);
+				amt = 0 - (parseFloat(value) || 0);
+				if(amt)
+					this.amount = amt.toFixed(2)
+				else
+					this.amount = amt
                 this.trigger('change');
             } else {
-                this.amount = parseFloat(value) || 0;
+                amt = parseFloat(value) || 0;
+				if(amt)
+					this.amount = amt.toFixed(2)
+				else
+					this.amount = amt
                 this.trigger('change');
             }
         },
         // returns the amount of money on this paymentline
         get_amount: function(){
-            return this.amount;
+            return parseFloat(this.amount) || 0;
         },
         // returns the associated cashRegister
         get_cashregister: function(){
@@ -637,6 +664,8 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 paymentLines:   new module.PaymentlineCollection(),
                 name:           "Order " + this.generateUniqueId(),
                 client:         null,
+				cashier:		null,
+				scan_unlocked:	false,
             });
             this.pos =     attributes.pos; 
             this.selected_orderline = undefined;
@@ -649,6 +678,10 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             return new Date().getTime();
         },
         addProduct: function(product, options){
+			if(!self.get("scan_unlocked")) {
+				alert("Please scan in to make a sale")
+				return
+			}
             options = options || {};
             var attr = product.toJSON();
             attr.pos = this.pos;
@@ -673,7 +706,6 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 this.get('orderLines').add(line);
             }
             this.selectLine(this.getLastOrderline());
-            this.negateAllLines();
             this.recalculateDiscount() 
             this.pos.proxy.message("display_product",{
                 "name":line.product.get("name"),
@@ -681,67 +713,65 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 "discount":line.discount,
                 });
         },
-        negateAllLines: function() {
-            self = this
-            lines = this.get("orderLines")
-            _.each(lines.models,function(line) {
-                line.line_type_code = self.transaction_mode && self.transaction_mode.toUpperCase() || "NORMAL"
-                if(self.transaction_mode == "refund" || self.transaction_mode == "w_on") {
-                    line.set_quantity(0-Math.abs(line.quantity))
-                } else {
-                    line.set_quantity(Math.abs(line.quantity))
-                }
-            })
-        },
         recalculateDiscount: function() {
+            self = this;
             lines = this.get("orderLines")
 			if(this.transaction_mode == "w_on" || this.transaction_mode == "w_off") {
 				_.each(lines.models,function(line) {
-					line.set_discount(0)
+					line.set_discount_silent(0)
 					line.product = line.product.clone()
 					line.product.set("taxes_id",[])
+                    
+                    line.set_quantity_silent(Math.abs(line.quantity))
+                    //if(self.transaction_mode == "w_off") {
+                    //    line.set_quantity_silent(0-Math.abs(line.quantity))
+                    //} else {
+                    //    line.set_quantity_silent(Math.abs(line.quantity))
+                    //}
+                    line.trigger("change")       
 				})
 			} else {
 				totalQuantity = 0
-				totalLinesQty12 = 0
-				totalLinesQty6 = 0
+                //set quantities, taxes based on transaction mode
 				_.each(lines.models,function(line) {
-					line.product.set("taxes_id",line.pos.get("products").get(line.product.id).get("taxes_id"))
-					totalQuantity += line.quantity
-//					if(line.product.get("discount_program_in_store_6")) {
-//						totalLinesQty6 += line.quantity
-//					} 
-//					if(line.product.get("discount_program_in_store_12")) {
-//						totalLinesQty12 += line.quantity
-//					} 
+					totalQuantity += Math.abs(line.quantity)
+                    line.line_type_code = self.transaction_mode && self.transaction_mode.toUpperCase() || "NORMAL"
+                   // if(self.transaction_mode == "refund") {
+                   //     line.set_quantity_silent(0-Math.abs(line.quantity))
+                   // } else {
+                   //     line.set_quantity_silent(Math.abs(line.quantity))
+                   // }
+                    line.product.set("taxes_id",self.pos.db.get_product_by_id(line.product.id).taxes_id)
 				})
+                _.each(lines.models, function(line) {
+                    if( !line.manual_discount && self.transaction_mode == "refund")  {
+                        line.set_discount_silent(0,true);
+                    } else {
+                        if( totalQuantity >= 12 &&
+                            line.product.get("discount_program_in_store_12") && 
+                            !line.manual_discount) {
+							line.set_discount_silent(15,true)
+						}
+                        if( totalQuantity >= 6 &&
+							totalQuantity < 12 &&
+                            line.product.get("discount_program_in_store_6") && 
+                            !line.manual_discount) {
+							line.set_discount_silent(10,true)
+                        } 
+						if(totalQuantity < 6 && !line.manual_discount) {
+							line.set_discount_silent(0,true)
+						}
 
-//				if(totalLinesQty12 >= 12) {
-				if(totalQuantity >= 12) {
-					discount = 0.2
-					_.each(lines.models,function(line) {
-						if(line.product.get("discount_program_in_store_12")) {
-							line.set_discount(discount * 100)
-						}
-					})
-//				} else if(totalLinesQty6 >= 6) {
-				} else if(totalQuantity >= 6) {
-					discount = 0.1
-					_.each(lines.models,function(line) {
-						if(line.product.get("discount_program_in_store_6")) {
-							line.set_discount(discount * 100)
-						}
-					})
-				} else {
-					_.each(lines.models,function(line) {
-						line.set_discount(0)
-					});
-				}
-			}
+                    }
+                    line.set_quantity_silent(Math.abs(line.quantity))
+                    line.trigger("change")       
+                })
+            }
         },
         removeOrderline: function( line ){
             this.get('orderLines').remove(line);
             this.selectLine(this.getLastOrderline());
+            this.recalculateDiscount()
         },
         getLastOrderline: function(){
             return this.get('orderLines').at(this.get('orderLines').length -1);
@@ -764,7 +794,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
         },
         getTotalTaxIncluded: function() {
             return (this.get('orderLines')).reduce((function(sum, orderLine) {
-                return sum + orderLine.get_price_with_tax();
+                return parseFloat((sum + orderLine.get_price_with_tax()).toFixed(2));
             }), 0);
         },
         getDiscountTotal: function() {
@@ -784,14 +814,15 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
         },
         getPaidTotal: function() {
             return (this.get('paymentLines')).reduce((function(sum, paymentLine) {
-                return sum + paymentLine.get_amount();
+                amt =  parseFloat(((sum + paymentLine.get_amount()) || 0).toFixed(2)) 
+				return amt
             }), 0);
         },
         getChange: function() {
-            return this.getPaidTotal() - this.getTotalTaxIncluded();
+            return parseFloat((this.getPaidTotal() - this.getTotalTaxIncluded()).toFixed(2));
         },
         getDueLeft: function() {
-            return this.getTotalTaxIncluded() - this.getPaidTotal();
+            return parseFloat((this.getTotalTaxIncluded() - this.getPaidTotal()).toFixed(2));
         },
         // sets the type of receipt 'receipt'(default) or 'invoice'
         set_receipt_type: function(type){

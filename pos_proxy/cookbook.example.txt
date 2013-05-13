@@ -1,9 +1,14 @@
 //receipt
+O::@c_open_draw :: @is_cash_sale
 I::@c_logo
 C::www.merchantsofsingapore.com.sg
-C::PH: XXX-XXXXX
-C::52-53 Duxton Road 
-C::Singapore 089516
+C::PH: 64679118
+C::Pasarbella @@ The Grandstand
+C::Bukit Timah
+C::Singapore 287994
+N::
+C::INVOICE
+C::Co Reg No. 201202625K
 O::@c_b_on REFUND @c_b_off :: @is_refund
 O::@c_b_on ADJUSTMENT @c_b_off :: @is_adjustment
 -::
@@ -42,8 +47,7 @@ C::Premium Importers
 J::@date :: @time
 
 //vfd_motd
-C::Welcome to
-C::Merchants:
+C::Merchants
 
 //vfd_item
 J::@name    :: $@price

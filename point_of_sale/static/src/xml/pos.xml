@@ -19,6 +19,7 @@
                     </div>
                     <div id="order-selector">
                         <button class="neworder-button">+</button>
+						<button class="void-button">Void</button>
                         <ol id="orders"></ol>
                     </div>
                     <!-- here goes header buttons -->
@@ -68,7 +69,7 @@
     </t>
 
     <t t-name="HeaderButtonWidget">
-        <div class="header-button">
+        <div class="header-button" style="background:#444;position:fixed;width:50px;width:60px;right:0px;top:0px;">
             <t t-esc="widget.label" />
         </div>
     </t>
@@ -85,28 +86,29 @@
     <t t-name="NumpadWidget">
         <div id="numpad">
             <button class="mode-button" data-mode='quantity'>Qty</button>
+            <button class="mode-button" data-mode='discount'>Disc</button>
+            <button class="mode-button" data-mode='price'>Price</button>
+			<br />
             <button class="input-button number-char">1</button>
             <button class="input-button number-char">2</button>
             <button class="input-button number-char">3</button>
             <br />
-            <button class="mode-button" data-mode='discount'>Disc</button>
             <button class="input-button number-char">4</button>
             <button class="input-button number-char">5</button>
             <button class="input-button number-char">6</button>
             <br />
-            <button class="mode-button" data-mode='price'>Price</button>
             <button class="input-button number-char">7</button>
             <button class="input-button number-char">8</button>
             <button class="input-button number-char">9</button>
             <br />
             <!-- <button class="input-button" id="numpad-minus" >+/-</button> -->
-            <button class="input-button" id="reason-button">...</button>
             <button class="input-button number-char">0</button>
             <button class="input-button number-char">.</button>
             <button class="input-button" id="numpad-backspace">
                 <img src="/point_of_sale/static/src/img/backspace.png" width="24" height="21" />
             </button>
             <br />
+            <button class="input-button" id="reason-button" style="width:204px;">Comment</button>
         </div>
     </t>
 
@@ -385,9 +387,15 @@
                 <hr />
                 <!-- <textarea name="_orderline_text" id="orderline_text"><t t-esc=" widget.orderline_text || ''" /></textarea> -->
                 <select id="orderline_text">
-                    <option value="faulty product">Product was Faulty</option>
-                    <option value="change of mind">Change of Mind</option>
-                    <option value="wrong item">Purchased wrong Item</option>
+                    <option class="op_refund" value="faulty product">Product was Faulty</option>
+                    <option class="op_refund" value="change of mind">Change of Mind</option>
+                    <option class="op_refund" value="wrong item">Purchased wrong Item</option>
+                    <option class="op_w_off" value="wine tasting">Wine Tasting</option>
+                    <option class="op_w_off" value="staff training">Staff Training</option>
+					<option class="op_w_off" value="trasnfer out">Store Transfer Out</option>
+                    <option class="op_w_off" value="stocktake adjustment w/off">Stocktake Adjustment</option>
+                    <option class="op_w_on" value="stocktake adjustment w/on">Stocktake Adjustment</option>
+                    <option class="op_w_on" value="transfer in">Store Transfer In</option>
                 </select>
                 <button id="reason-ok-button">Ok</button>
             </div>
@@ -566,7 +574,7 @@
 
     <t t-name="OrderButtonWidget">
         <li class="order-selector-button">
-            <button class="select-order"><t t-esc="(widget.order.get_client() ? widget.order.get_client_name()+' : ':'') + widget.order.get('creationDate').toString('t')"/></button>
+            <button class="select-order"><t t-esc="(widget.order.get('cashier') ? widget.order.get('cashier').name.split(' ')[0]+' : ':'') + widget.order.get('creationDate').toString('t')"/></button>
         </li>
     </t>
 

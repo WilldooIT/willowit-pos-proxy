@@ -69,7 +69,13 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
 
         },
         clickReason: function() {
-            this.pos_widget.screen_selector.show_popup("reason")
+			if(this.pos.get("selectedOrder").selected_orderline) {
+				t_type = this.pos.get("selectedOrder").transaction_mode
+				this.pos_widget.screen_selector.show_popup("reason")
+				$("#orderline_text")[0].value = ""
+				$("#orderline_text option").hide()
+				$("option.op_" + t_type).show()
+			}
         },
         clickDeleteLastChar: function() {
             return this.state.deleteLastChar();
@@ -127,6 +133,10 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     console.warn('TODO should not get there...?');
                     return;
                 }
+				if(!self.pos.get("selectedOrder").get("scan_unlocked")) {
+					alert("Please scan in to make a sale")
+					return
+				}
                 mode = self.pos.get("selectedOrder").transaction_mode
                 if(mode == "refund" || mode == "w_on" || mode == "w_off") {
                     var allLinesCommented = true
@@ -678,15 +688,11 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
         },
         get_name: function(){
             var user;
-            if(this.mode === 'cashier'){
-                user = this.pos.get('cashier') || this.pos.get('user');
-            }else{
-                user = this.pos.get('selectedOrder').get_client()  || this.pos.get('user');
-            }
+			user = this.pos.get('selectedOrder').get("cashier");
             if(user){
                 return user.name;
             }else{
-                return "";
+                return "[Not Scanned In]";
             }
         },
     });
@@ -865,6 +871,9 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                 self.$('.neworder-button').click(function(){
                     self.pos.add_new_order();
                 });
+                self.$('.void-button').click(function(){
+                    self.pos.clear_current_order();
+                });
                 self.$("#sale-mode-button").click(_.bind(self.saleButtonClicked,self));
                 self.$("#refund-mode-button").click(_.bind(self.refundButtonClicked,self));
                 self.$("#write-on-mode-button").click(_.bind(self.writeOnButtonClicked,self));
@@ -932,37 +941,37 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     $("#topheader").removeClass("active")
                     $("#sale-mode-button").addClass("active")
                     $("#reason-button").fadeOut()
+					$(".order-container").css("bottom","361px");
                     $("#paypad button[data-adjustment-method='true']").fadeOut()
                     $("#paypad button[data-adjustment-method='false']").fadeIn()
-                    self.pos.get("selectedOrder").negateAllLines()    
-                    self.pos.trigger("change")
+					self.pos.get("selectedOrder").recalculateDiscount()
                     break;
                 case "refund":
                     $("#topheader").addClass("active")
                     $("#refund-mode-button").addClass("active")
                     $("#reason-button").fadeIn()
+					$(".order-container").css("bottom","426px");
                     $("#paypad button[data-adjustment-method='true']").fadeOut()
                     $("#paypad button[data-adjustment-method='false']").fadeIn()
-                    self.pos.get("selectedOrder").negateAllLines()    
-                    self.pos.trigger("change")
+					self.pos.get("selectedOrder").recalculateDiscount()
                     break;
                 case "w_on":
                     $("#topheader").addClass("active")
                     $("#write-on-mode-button").addClass("active")
                     $("#reason-button").fadeIn()
+					$(".order-container").css("bottom","426px");
                     $("#paypad button").fadeOut()
                     $("#paypad button[data-adjustment-method='true']").fadeIn()
-                    self.pos.get("selectedOrder").negateAllLines()    
-                    self.pos.trigger("change")
+					self.pos.get("selectedOrder").recalculateDiscount()
                     break;
                 case "w_off":
                     $("#topheader").addClass("active")
                     $("#write-off-mode-button").addClass("active")
                     $("#reason-button").fadeIn()
+					$(".order-container").css("bottom","426px");
                     $("#paypad button").fadeOut()
                     $("#paypad button[data-adjustment-method='true']").fadeIn()
-                    self.pos.get("selectedOrder").negateAllLines()    
-                    self.pos.trigger("change")
+					self.pos.get("selectedOrder").recalculateDiscount()
                     break;
             }
         },

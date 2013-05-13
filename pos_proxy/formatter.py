@@ -80,8 +80,8 @@ class Formatter():
                    "c_f_prestige":"\x1b\x6b\x03",
                    "c_f_sans":"\x1b\x6b\x01",
                    "c_cut":"\x1d\x56\x42\x04",
-                   "c_open_draw":"\x1bp\x00\x7f\xff",
-                   "c_logo":"\x1d\x28\x4c\x06\x00\x30\x45LM\x01\x01"
+                   "c_open_draw":"\x1b\x70\x30\x37\x79",
+                   "c_logo":"\x1d\x28\x4c\x06\x00\x30\x45ML\x01\x01"
             }
         else:
             self.control_codes = {}
@@ -245,15 +245,18 @@ class Formatter():
         
         vals["change"] = "%.2f" % change_amt
         vals["payment_lines"] = []
-
+        is_cash_sale = False
         for l in receipt["paymentlines"]:
             line = {}
             line["journal"] = l["journal"]
+            if line["journal"] == "CASH (SGD)":
+                is_cash_sale = True           
             line["amount"] = "%.2f" % l["amount"]
             vals["payment_lines"].append(line)
         vals["is_refund"] = receipt["transaction_mode"] == "refund"
         vals["is_adjustment"] = receipt["transaction_mode"]  in ["w_on","w_off"]
         vals["receipt_type"] = receipt["receipt_type"]
+        vals["is_cash_sale"] = is_cash_sale 
         return vals
 
 
