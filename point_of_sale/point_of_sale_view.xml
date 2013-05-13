@@ -972,7 +972,8 @@
                 <tree string="Point of Sale Session">
                     <field name="config_id" />
                     <field name="name" />
-                    <field name="user_id" />
+                    <field name="start_user_id" />
+                    <field name="end_user_id" />
                     <field name="start_at" />
                     <field name="stop_at" />
                     <field name="state" />
@@ -990,9 +991,11 @@
                     <separator/>
                     <filter string="Today" domain="[('start_at', '>=', time.strftime('%%Y-%%m-%%d 00:00:00'))]" />
                     <field name="config_id" />
-                    <field name="user_id" />
+                    <field name="start_user_id" />
+                    <field name="end_user_id" />
                     <group expand="0" string="Group By...">
-                        <filter string="User" icon="terp-personal" domain="[]" context="{'group_by' : 'user_id'}" />
+                        <filter string="Start User" icon="terp-personal" domain="[]" context="{'group_by' : 'start_user_id'}" />
+                        <filter string="End User" icon="terp-personal" domain="[]" context="{'group_by' : 'end_user_id'}" />
                         <filter string="Point of Sales" domain="[]" context="{'group_by': 'user_id'}" />
                     </group>
                 </search>

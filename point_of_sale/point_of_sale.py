@@ -114,7 +114,7 @@ class pos_config(osv.osv):
                 result.append((record.id, record.name+' ('+_('not used')+')'))
                 continue
             session = record.session_ids[0]
-            result.append((record.id, record.name + ' ('+session.user_id.name+')')) #, '+states[session.state]+')'))
+            result.append((record.id, record.name + ' ('+states[session.state]+')'))
         return result
 
     def _default_sale_journal(self, cr, uid, context=None):
