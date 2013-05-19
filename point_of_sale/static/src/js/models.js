@@ -416,7 +416,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 this.order.removeOrderline(this);
                 return;
             }else if(this.order.transaction_mode == "refund" || this.order.transaction_mode == "w_on") {
-                quant = 0 - Math.abs(quantity)
+                quant = ((0 - Math.abs(quantity)).toFixed(4)).parseFloat()
                 this.quantity    = quant;
                 this.quantityStr = '' + this.quantity;
             } else {    
