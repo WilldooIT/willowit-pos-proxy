@@ -1239,7 +1239,7 @@ class pos_order_line(osv.osv):
         'notice': fields.char('Discount Notice', size=128),
         'product_id': fields.many2one('product.product', 'Product', domain=[('sale_ok', '=', True)], required=True, change_default=True),
         'price_unit': fields.float(string='Unit Price', digits=(16, 2)),
-        'qty': fields.float('Quantity', digits=(16, 2)),
+        'qty': fields.float('Quantity', digits=(16, 4)),
         'price_subtotal': fields.function(_amount_line_all, multi='pos_order_line_amount', string='Subtotal w/o Tax', store=True),
         'price_subtotal_incl': fields.function(_amount_line_all, multi='pos_order_line_amount', string='Subtotal', store=True),
         'discount': fields.float('Discount (%)', digits=(16, 2)),
