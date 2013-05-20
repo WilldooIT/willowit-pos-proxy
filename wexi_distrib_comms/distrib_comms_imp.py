@@ -136,6 +136,8 @@ class WexiImportClass(osv.osv):
             if "pos_categ_id" in values:
                 res["pos_categ_id"] = False
                 values.pop("pos_categ_id")
+            if "dam_name" in values:
+                res["dam_name"] = values.pop("dam_name")
             #
             # this is version 7.0 code, but won't fall over for 6.1 as the field will not exist for 6.1
             #
@@ -182,7 +184,10 @@ class WexiImportClass(osv.osv):
             
             if "list_price" in stashed_values and not product.is_wine:
                 product_obj.write(cr,uid,id,{"list_price":stashed_values["list_price"]},context=context)
-                
+            
+            if stashed_values.get("dam_name"):
+                product_obj.write(cr,uid,id,{"name":stashed_values["dam_name"]},context=context)
+                 
             if not product.type_id:
                 if product.categ_id:
                     def make_from_category(categ_id):
