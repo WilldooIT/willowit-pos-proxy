@@ -160,6 +160,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
         set_button_visibility: function(user) { 
     
             $("#write-off-mode-button").hide()
+            $("#tasting-write-off-mode-button").hide()
             $("#write-on-mode-button").hide()
             $(".mode-button[data-mode='discount']").hide()
             $(".mode-button[data-mode='price']").hide()
@@ -171,6 +172,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
 				
 				if(user.can_adjust) {
 					$("#write-off-mode-button").fadeIn()
+                    $("#tasting-write-off-mode-button").fadeIn()
 					$("#write-on-mode-button").fadeIn()
 					$(".mode-button[data-mode='price']").fadeIn()
 				}

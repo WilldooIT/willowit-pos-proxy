@@ -878,6 +878,7 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                 self.$("#refund-mode-button").click(_.bind(self.refundButtonClicked,self));
                 self.$("#write-on-mode-button").click(_.bind(self.writeOnButtonClicked,self));
                 self.$("#write-off-mode-button").click(_.bind(self.writeOffButtonClicked,self));
+                self.$("#tasting-write-off-mode-button").click(_.bind(self.tastingWriteOffButtonClicked,self));
                 
                 //when a new order is created, add an order button widget
                 self.pos.get('orders').bind('add', function(new_order){
@@ -942,8 +943,9 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     $("#sale-mode-button").addClass("active")
                     $("#reason-button").fadeOut()
 					$(".order-container").css("bottom","361px");
-                    $("#paypad button[data-adjustment-method='true']").fadeOut()
                     $("#paypad button[data-adjustment-method='false']").fadeIn()
+                    $("#paypad button[data-adjustment-method='true']").fadeOut()
+                    $("#paypad button[data-tasting-method='true']").fadeOut()
 					self.pos.get("selectedOrder").recalculateDiscount()
                     break;
                 case "refund":
@@ -951,8 +953,9 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     $("#refund-mode-button").addClass("active")
                     $("#reason-button").fadeIn()
 					$(".order-container").css("bottom","426px");
-                    $("#paypad button[data-adjustment-method='true']").fadeOut()
                     $("#paypad button[data-adjustment-method='false']").fadeIn()
+                    $("#paypad button[data-adjustment-method='true']").fadeOut()
+                    $("#paypad button[data-tasting-method='true']").fadeOut()
 					self.pos.get("selectedOrder").recalculateDiscount()
                     break;
                 case "w_on":
@@ -971,6 +974,15 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
 					$(".order-container").css("bottom","426px");
                     $("#paypad button").fadeOut()
                     $("#paypad button[data-adjustment-method='true']").fadeIn()
+					self.pos.get("selectedOrder").recalculateDiscount()
+                    break;
+                case "tstng":
+                    $("#topheader").addClass("active")
+                    $("#tasting-write-off-mode-button").addClass("active")
+                    $("#reason-button").fadeIn()
+					$(".order-container").css("bottom","426px");
+                    $("#paypad button").fadeOut()
+                    $("#paypad button[data-tasting-method='true']").fadeIn()
 					self.pos.get("selectedOrder").recalculateDiscount()
                     break;
             }
@@ -994,6 +1006,12 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
         writeOffButtonClicked:function() {
             var self = this
             self.pos.get("selectedOrder").transaction_mode  = "w_off" 
+            self.refreshForMode(self)
+
+        }, 
+        tastingWriteOffButtonClicked:function() {
+            var self = this
+            self.pos.get("selectedOrder").transaction_mode  = "tstng" 
             self.refreshForMode(self)
 
         }, 

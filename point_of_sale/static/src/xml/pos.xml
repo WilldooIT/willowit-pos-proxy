@@ -13,9 +13,10 @@
                 <div id="rightheader">
                     <div id="mode-selector">
                         <button  id="sale-mode-button" class="active">Sale</button>
-                        <button  id="refund-mode-button">Refund</button>
-                        <button  id="write-off-mode-button">Write Off</button>
-                        <button  id="write-on-mode-button">Write On</button>
+                        <button  id="refund-mode-button">Rfnd</button>
+                        <button  id="write-off-mode-button">W/Off</button>
+                        <button  id="tasting-write-off-mode-button">Opn Btl</button>
+                        <button  id="write-on-mode-button">W/On</button>
                     </div>
                     <div id="order-selector">
                         <button class="neworder-button">+</button>
@@ -566,7 +567,10 @@
     </t>
 
     <t t-name="PaypadButtonWidget">
-        <button class="paypad-button" t-att-data-adjustment-method="widget.cashRegister.get('journal').adjustment_payment_method and 'true' or 'false'"  t-att-cash-register-id="widget.cashRegister.get('id')">
+        <button class="paypad-button" 
+			t-att-data-adjustment-method="widget.cashRegister.get('journal').adjustment_payment_method and 'true' or 'false'"  
+			t-att-data-tasting-method="widget.cashRegister.get('journal').tasting_payment_method and 'true' or 'false'"  
+			t-att-cash-register-id="widget.cashRegister.get('id')">
             <t t-esc="widget.cashRegister.get('journal').name"/>
         </button>
         <br />

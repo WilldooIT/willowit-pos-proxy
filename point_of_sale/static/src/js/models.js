@@ -744,7 +744,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                     line.product.set("taxes_id",self.pos.db.get_product_by_id(line.product.id).taxes_id)
 				})
                 _.each(lines.models, function(line) {
-                    if( !line.manual_discount && self.transaction_mode == "refund")  {
+                    if( !line.manual_discount && (self.transaction_mode == "refund" || self.transaction_mode == "tstng"))  {
                         line.set_discount_silent(0,true);
                     } else {
                         if( totalQuantity >= 12 &&
