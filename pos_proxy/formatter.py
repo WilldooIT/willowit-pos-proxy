@@ -255,6 +255,7 @@ class Formatter():
             vals["payment_lines"].append(line)
         vals["is_refund"] = receipt["transaction_mode"] == "refund"
         vals["is_adjustment"] = receipt["transaction_mode"]  in ["w_on","w_off"]
+        vals["is_tasting"] = receipt["transaction_mode"]  == "tstng"
         vals["receipt_type"] = receipt["receipt_type"]
         vals["is_cash_sale"] = is_cash_sale 
         return vals
