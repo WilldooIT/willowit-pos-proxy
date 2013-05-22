@@ -870,7 +870,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 paymentlines.push(paymentline.export_for_printing());
             });
             var client  = this.get('client');
-            var cashier = this.pos.get('cashier') || this.pos.get('user');
+            var cashier = this.get("cashier") || this.pos.get('cashier') || this.pos.get('user');
             var company = this.pos.get('company');
             var shop    = this.pos.get('shop');
             var date = new Date();
