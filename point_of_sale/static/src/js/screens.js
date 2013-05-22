@@ -167,18 +167,18 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             $("#refund-mode-button").hide() 
 			if(user) {
 				if(user.can_refund) {
-					$("#refund-mode-button").fadeIn()
+					$("#refund-mode-button").show()
 				}
 				
 				if(user.can_adjust) {
-					$("#write-off-mode-button").fadeIn()
-                    $("#tasting-write-off-mode-button").fadeIn()
-					$("#write-on-mode-button").fadeIn()
-					$(".mode-button[data-mode='price']").fadeIn()
+					$("#write-off-mode-button").show()
+                    $("#tasting-write-off-mode-button").show()
+					$("#write-on-mode-button").show()
+					$(".mode-button[data-mode='price']").show()
 				}
 
 				if(user.can_discount) {
-					$(".mode-button[data-mode='discount']").fadeIn()
+					$(".mode-button[data-mode='discount']").show()
 				} 
 			}
             if(this.pos_widget) {

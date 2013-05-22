@@ -943,46 +943,45 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     $("#sale-mode-button").addClass("active")
                     $("#reason-button").fadeOut()
 					$(".order-container").css("bottom","361px");
-                    $("#paypad button[data-adjustment-method='false']").fadeIn()
-                    $("#paypad button[data-adjustment-method='true']").fadeOut()
-                    $("#paypad button[data-tasting-method='true']").fadeOut()
+                    $("#paypad button[data-adjustment-method='false']").show()
+                    $("#paypad button[data-adjustment-method='true']").hide()
+                    $("#paypad button[data-tasting-method='true']").hide()
 					self.pos.get("selectedOrder").recalculateDiscount()
                     break;
                 case "refund":
                     $("#topheader").addClass("active")
                     $("#refund-mode-button").addClass("active")
-                    $("#reason-button").fadeIn()
+                    $("#reason-button").show()
 					$(".order-container").css("bottom","426px");
-                    $("#paypad button[data-adjustment-method='false']").fadeIn()
-                    $("#paypad button[data-adjustment-method='true']").fadeOut()
-                    $("#paypad button[data-tasting-method='true']").fadeOut()
+                    $("#paypad button[data-adjustment-method='false']").show()
+                    $("#paypad button[data-adjustment-method='true']").hide()
+                    $("#paypad button[data-tasting-method='true']").hide()
 					self.pos.get("selectedOrder").recalculateDiscount()
                     break;
                 case "w_on":
                     $("#topheader").addClass("active")
                     $("#write-on-mode-button").addClass("active")
-                    $("#reason-button").fadeIn()
+                    $("#reason-button").show()
 					$(".order-container").css("bottom","426px");
-                    $("#paypad button").fadeOut()
-                    $("#paypad button[data-adjustment-method='true']").fadeIn()
+                    $("#paypad button").hide()
+                    $("#paypad button[data-adjustment-method='true']").show()
 					self.pos.get("selectedOrder").recalculateDiscount()
                     break;
                 case "w_off":
                     $("#topheader").addClass("active")
                     $("#write-off-mode-button").addClass("active")
-                    $("#reason-button").fadeIn()
+                    $("#reason-button").show()
 					$(".order-container").css("bottom","426px");
-                    $("#paypad button").fadeOut()
-                    $("#paypad button[data-adjustment-method='true']").fadeIn()
+                    $("#paypad button").hide()
+                    $("#paypad button[data-adjustment-method='true']").show()
 					self.pos.get("selectedOrder").recalculateDiscount()
                     break;
                 case "tstng":
                     $("#topheader").addClass("active")
                     $("#tasting-write-off-mode-button").addClass("active")
-                    $("#reason-button").fadeIn()
 					$(".order-container").css("bottom","426px");
-                    $("#paypad button").fadeOut()
-                    $("#paypad button[data-tasting-method='true']").fadeIn()
+                    $("#paypad button").hide()
+                    $("#paypad button[data-tasting-method='true']").show()
 					self.pos.get("selectedOrder").recalculateDiscount()
                     break;
             }

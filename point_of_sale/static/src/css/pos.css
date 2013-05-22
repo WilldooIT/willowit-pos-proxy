@@ -396,7 +396,7 @@
 
 .point-of-sale #rightpane header {
     padding: 0;
-    height: 32px;
+    height: 48px;
     border-bottom: 1px solid #c7c7c7;
     background: #d3d3d3;
     background: -moz-linear-gradient(white, #d3d3d3);
@@ -431,7 +431,7 @@
 .point-of-sale .breadcrumb li {
     float: left;
     line-height: 32px;
-    height: 32px;
+    height: 48px;
 }
 .point-of-sale .breadcrumb li:last-child {
     padding-right: 3px;
@@ -439,8 +439,8 @@
 }
 .point-of-sale .breadcrumb a {
     display: inline-block;
-    padding: 0 9px;
-    vertical-align: top;
+    padding: 9px 24px;
+    vertical-align: middle;
     text-shadow: #f7f7f7 0 1px 1px;
     color: #555555;
     font-weight: bold;
@@ -481,7 +481,7 @@
 
 .point-of-sale #categories {
     /*background:#f0f0f0;*/
-	height:auto;
+	height:70px;
     position: relative;
     background-image: url('../img/bg.png');
     border-bottom: 2px solid #e0e0e0;
