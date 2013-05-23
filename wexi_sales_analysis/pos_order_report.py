@@ -42,24 +42,25 @@ class pos_payment_report(osv.osv):
         tools.drop_view_if_exists(cr,"report_pos_payment_wexi")
         cr.execute("""
         create or replace view report_pos_payment_wexi as (
-            select  po.id,
-                max(po.name) order_name,
-                max(po.date_order) order_date,
-                max(ps.name) session_name,
-                max(ps.state) session_state,
-                max(absl.name) payment_line_name,
-                max(to_char(po.date_order, 'YYYY')) as year,
-                max(to_char(po.date_order, 'MM')) as month,
-                max(to_char(po.date_order, 'YYYY-MM-DD')) as day,
-                absl.journal_id,
-                sum(absl.amount) amount,
-                max(aj.name) journal_name
-            from pos_order po
-                left join pos_session ps on (po.session_id = ps.id)
-                left join account_bank_statement_line absl on (po.id = absl.pos_statement_id)
+        select          max(absl.id) as id,
+                        max(absl.name),
+                        max(po.name) order_name,
+                        max(po.date_order) order_date,
+                        max(ps.name) session_name,
+                        max(ps.state) session_state,
+                        max(to_char(po.date_order, 'YYYY')) as year,
+                        max(to_char(po.date_order, 'MM')) as month,
+                        max(to_char(po.date_order, 'YYYY-MM-DD')) as day,
+                        absl.journal_id,
+                        sum(absl.amount) amount,
+                        max(aj.name) journal_name
+                    from account_bank_statement_line absl
                 left join account_journal aj on (absl.journal_id = aj.id)
-            group by po.id,absl.journal_id
-            order by order_name)""")
+                        left join pos_order po on (po.id = absl.pos_statement_id)
+                        left join pos_session ps on (po.session_id = ps.id)
+                        where absl.type = 'customer'
+                group by po.date_order, absl.journal_id)
+        """)
 pos_payment_report()
 
 class pos_order_report(osv.osv):
@@ -110,8 +111,8 @@ class pos_order_report(osv.osv):
                     count(*) as nbr,
                     to_date(to_char(s.date_order, 'dd-MM-YYYY'),'dd-MM-YYYY') as date,
                     sum(l.qty * u.factor) as product_qty,
-                    sum(l.qty * l.price_unit) as price_total,
                     sum((l.qty * l.price_unit) * (l.discount / 100)) as total_discount,
+                    sum(price_subtotal_incl) as price_total,
                     (sum(l.qty*l.price_unit)/sum(l.qty * u.factor))::decimal(16,2) as average_price,
                     sum(cast(to_char(date_trunc('day',s.date_order) - date_trunc('day',s.create_date),'DD') as int)) as delay_validation,
                     to_char(s.date_order, 'YYYY') as year,

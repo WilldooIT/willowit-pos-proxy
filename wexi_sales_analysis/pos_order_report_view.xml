@@ -9,10 +9,10 @@
                     <field name="year" invisible="1"/>
                     <field name="day" invisible="1"/>
                     <field name="month" invisible="1"/>
-                    <field name="order_name" />
+                    <field name="order_name" invisible="1"/>
                     <field name="order_date" />
-                    <field name="session_name" sum="Session" />
-                    <field name="session_state" sum="Session State" />
+                    <field name="session_name" invisible="1" sum="Session" />
+                    <field name="session_state" invisible="1" sum="Session State" />
                     <field name="journal_name"  sum="Payment Name" />
                     <field name="amount" sum="Amount" />
                 </tree>
@@ -41,7 +41,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree</field>
             <field name="search_view_id" ref="view_report_pos_payment_search"/>
-            <field name="context">{'search_default_active_session':1,'group_by':['session_name'],'group_by_session_name':1,'group_by_journal_name':1}</field>
+            <field name="context">{'search_default_active_session':1,'group_by_session_name':1,'group_by_journal_name':1}</field>
         </record>
 
 
