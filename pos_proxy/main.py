@@ -8,7 +8,7 @@ import json
 import formatter
 import shelve
 import datetime 
-
+import ast
             
 class PosProxy:
     """
@@ -49,6 +49,16 @@ Requests are dispatched based upon the request path.
                 receipt = rpccall["params"]["receipt"]
                 self.print_receipt(receipt)
                 return Response("")
+            elif request.path == "/pos/reprint_receipt":
+                r = request.args.get("receipt")
+                if not r:
+                    print "Empty receipt"
+                    return Response("FAIL")
+                receipt = ast.literal_eval(r)
+                receipt["is_reprint"] = True
+                self.print_receipt(receipt)
+                return Response("OK")
+                
             elif request.path == "/pos/display_product":
                 #r = request.args.get("r")
                 #rpc_call = json.loads(r)

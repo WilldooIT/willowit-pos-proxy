@@ -214,6 +214,7 @@ class Formatter():
                     
     def prepare_receipt_vals(self,receipt=test):
         vals = {}
+        vals["is_reprint"] = receipt.get("is_reprint")
         vals["company_name"] = receipt["company"]["name"]
         vals["company_website"] = receipt["company"]["website"]
         vals["company_phone"] = receipt["company"]["phone"]
@@ -249,7 +250,7 @@ class Formatter():
         for l in receipt["paymentlines"]:
             line = {}
             line["journal"] = l["journal"]
-            if line["journal"] == "CASH (SGD)":
+            if line["journal"] == "CASH (SGD)" and not vals["is_reprint"]:
                 is_cash_sale = True           
             line["amount"] = "%.2f" % l["amount"]
             vals["payment_lines"].append(line)
