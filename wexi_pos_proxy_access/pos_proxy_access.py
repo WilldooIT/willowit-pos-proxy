@@ -13,6 +13,8 @@ class PosConfig(osv.osv):
             Send a command to the specified POS proxy
         """
         pos_config = self.browse(cr,uid,id,context=context)
+        if not pos_config.pos_proxy_url:
+            raise osv.except_osv("Error","There is no proxy configured for this POS")
         try:
             conn = httplib.HTTPConnection(pos_config.pos_proxy_url,timeout=2)
             conn.request("GET","/pos/%s?%s" % (command,urllib.urlencode(args)))
@@ -24,20 +26,6 @@ class PosConfig(osv.osv):
         return result
 
 
-class PosOrder(osv.osv):
-    _inherit = "pos.order"
-
-    _columns = {
-        "receipt_json":fields.text(string="Receipt Json")
-    }
-
-    def action_reprint_receipt(self,cr,uid,ids,context=None):
-        pos_config_obj = self.pool.get("pos.config")
-        for order in self.browse(cr,uid,ids,context=context):
-            config_id = order.session_id.config_id.id
-            res = pos_config_obj.pos_proxy_command(cr,uid,config_id,"reprint_receipt",{"receipt":order.receipt_json or ""},context=context)
-        return {"warning":{"title":"Server Sez:","message":" " + res}}
-        
 
 
 
