@@ -1,0 +1,27 @@
+<openerp>
+    <data>
+        <record id="reprint_receipt_form" model="ir.ui.view">
+            <field name="name">pos.order</field>
+            <field name="type">form</field>
+            <field name="model">pos.order</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_pos_form" />
+            <field name="arch" type="xml">
+                <button string="Reprint" position="replace">
+                    <button name="action_reprint_receipt" type="object" string="Reprint Receipt" />
+                </button>
+            </field>
+        </record>
+
+        <record id="pos_proxy_config_form" model="ir.ui.view">
+            <field name="name">pos.confirm</field>
+            <field name="type">form</field>
+            <field name="model">pos.config</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_config_form" />
+            <field name="arch" type="xml">
+                <field name="iface_payment_terminal" position="after">
+                    <field name="pos_proxy_url" />
+                </field>
+            </field>
+        </record>
+    </data>
+</openerp>
