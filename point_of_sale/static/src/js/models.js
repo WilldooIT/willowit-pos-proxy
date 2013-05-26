@@ -603,21 +603,12 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
         //sets the amount of money on this payment line
         set_amount: function(value){
             mode = self.pos.get("selectedOrder").transaction_mode
-            if(mode == "refund" || mode == "w_on") {
-				amt = 0 - (parseFloat(value) || 0);
-				if(amt)
-					this.amount = amt.toFixed(2)
-				else
-					this.amount = amt
-                this.trigger('change');
-            } else {
-                amt = parseFloat(value) || 0;
-				if(amt)
-					this.amount = amt.toFixed(2)
-				else
-					this.amount = amt
-                this.trigger('change');
-            }
+			amt = parseFloat(value) || 0;
+			if(amt)
+				this.amount = parseFloat(amt.toFixed(2))
+			else
+				this.amount = amt
+			this.trigger('change');
         },
         // returns the amount of money on this paymentline
         get_amount: function(){
