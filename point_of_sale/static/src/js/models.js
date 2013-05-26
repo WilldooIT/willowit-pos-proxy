@@ -923,6 +923,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 return paymentLines.push([0, 0, item.export_as_JSON()]);
             }, this));
             return {
+                receipt_json: this.export_for_printing(),
                 name: this.getName(),
                 amount_paid: this.getPaidTotal(),
                 amount_total: this.getTotalTaxIncluded(),
