@@ -58,7 +58,6 @@ Requests are dispatched based upon the request path.
                 receipt["is_reprint"] = True
                 self.print_receipt(receipt)
                 return Response("OK")
-                
             elif request.path == "/pos/display_product":
                 #r = request.args.get("r")
                 #rpc_call = json.loads(r)

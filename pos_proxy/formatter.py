@@ -127,17 +127,29 @@ class Formatter():
         #this function looks at the command (the first character) and 
         # lays out a line accordingly. Any symbols have already been expanded. 
         #Each command can have 0,1 or 2 arguments, separated by ::
-
+        EMPTY = ["","0","0.0",False,"false","False","null","None","undefined"]
         if len(style) > 0 and style[0] == "!":
             if line1 == "":
                 return ""
             else:
                 style = style[1:]
-        elif style == 'O':
-            if line2.strip() in ["","0","0.0",False,"false","False","null","None","undefined"]:
+        elif style in ['O','P','Q','U']:
+            if line2.strip() in EMPTY:
                 return ""
             else:
-                return self.center(line1) + self.nl()
+                if style == 'O':
+                    return self.center(line1) + self.nl()
+                if style == 'P':
+                    return self.right(line1) + self.nl()
+                if style == 'Q':
+                    return line1 + self.nl()
+                if style == 'U':
+                    return "\x1d!\x11\x1db\x01" + self.center(line1,col_width=self.col_width/2) + "\x1d!\x00" + self.nl()
+        elif style == '_':
+            if line1.strip() in EMPTY:
+                return ""
+            else:
+                return self.line() + self.nl()
         elif style == 'C':
             return self.center(line1) + self.nl()
         elif style == 'T':
@@ -214,7 +226,10 @@ class Formatter():
                     
     def prepare_receipt_vals(self,receipt=test):
         vals = {}
-        vals["is_reprint"] = receipt.get("is_reprint")
+        vals["is_reprint"] = receipt.get("is_reprint")  
+        vals["is_takeaway"] = receipt.get("is_takaway")
+        vals["order_number"] = receipt.get("order_number")
+        vals["table"] = receipt.get("table") or ""
         vals["company_name"] = receipt["company"]["name"]
         vals["company_website"] = receipt["company"]["website"]
         vals["company_phone"] = receipt["company"]["phone"]
