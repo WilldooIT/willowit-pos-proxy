@@ -11,7 +11,53 @@
         <record id="categ_others" model="pos.category">
             <field name="name">Others</field>
         </record>
+        <record id="glass_form_view" model="ir.ui.view">
+            <field name="name">pos.wine.glass</field>
+            <field name="model">pos.wine.glass</field>
+            <field name="arch" type="xml">
+                <form string="Wine Glass Sizes">
+                    <field name="name" />
+                    <field name="volume" />
+                </form>
+                <tree string="Tables">
+                    <field name="name" />
+                    <field name="volume" />
+                </tree>
+            </field>
+        </record>
 
+        <record model="ir.actions.act_window" id="action_pos_glass_size_form">
+            <field name="name">Wine Glass Sizes</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">pos.wine.glass</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+        <menuitem name="Glass Sizes" id="menu_glass_config" action="action_pos_glass_size_form"
+            parent="menu_point_config_product" sequence="30" />
+
+        <record id="table_form_view" model="ir.ui.view">
+            <field name="name">pos.order.table</field>
+            <field name="model">pos.order.table</field>
+            <field name="arch" type="xml">
+                <form string="Tables">
+                    <field name="name" />
+                </form>
+                <tree string="Tables">
+                    <field name="name" />
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_pos_order_table_form">
+            <field name="name">Tables</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">pos.order.table</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+        <menuitem name="Tables" id="menu_table_config" action="action_pos_order_table_form"
+            parent="menu_point_config_product" sequence="29" />
         <record model="ir.ui.view" id="view_pos_pos_form">
             <field name="name">pos.order</field>
             <field name="model">pos.order</field>
