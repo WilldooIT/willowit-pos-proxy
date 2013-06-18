@@ -19,20 +19,40 @@ Requests are dispatched based upon the request path.
     config = {}
 
     def __init__(self):
+        """
+        This method will load the config file, and then loop over all of the printers configured within, setting up the predicate value for use later on.
+        """
         self.config = json.load(open("config.json"))
         cookbook = open(self.config["cookbook"]).read()
 
         self.printers = {}
         for (p_name,printer) in self.config["printers"].iteritems():
             printer["formatter"] = formatter.Formatter(cookbook,"receipt",printer["col_width"],printer["destination"])
-            if printer["active"]:
+            active = printer["active"]
+            try:
+                if active:
+                    predicate_str = printer.get("predicate")
+                    if predicate_str:
+                        predicate = eval(printer["predicate"])
+                        if type(predicate) == type(lambda a:a):
+                            printer["predicate"] = predicate
+                        else:
+                            raise ValueError("Predicate must be a function")
+            except Exception as e:
+                print "Error with predicate, disabling printer %s" % p_name
+                print e
+                active = False
+                
+            if active:
                 self.printers[p_name] = printer
-
         self.vfd_formatter = formatter.Formatter(cookbook,"vfd_motd",self.config["vfd_col_width"],"vfd")
         self.vfd_motd()
 
 
     def run(self):
+        """
+        This is the main handler loop for incoming web requests. 
+        """
         @Request.application
         def application(request):
             if request.path == "/pos/print_receipt":
@@ -74,6 +94,9 @@ Requests are dispatched based upon the request path.
             
 
     def print_receipt(self,receipt):
+        """
+        Print a receipt to all of the active printers.
+        """
         self._print_receipt(receipt)
         change = receipt["total_paid"] - receipt["total_with_tax"]
         self.vfd_change(change)
@@ -83,28 +106,36 @@ Requests are dispatched based upon the request path.
         for (p_name,printer) in self.printers.iteritems():
             for receipt_type in printer["receipt_types"]:
                 receipt["receipt_type"] = receipt_type
-                output = printer["formatter"].print_receipt(receipt)
-                if printer["type"] == "local":
-                    print "attempting to print to printer '%s' (%s)" % (p_name,receipt["receipt_type"])
-                    try:
-                        printer_file = open(printer["device"],"w")
-                        printer_file.write(output)
-                        printer_file.flush()
-                        printer_file.close()
+                do_print = True
+                receipt_vals = printer["formatter"].prepare_receipt_vals(receipt)
+                if printer.get("predicate"):
+                    predicate = printer["predicate"]
+                    do_print = predicate(receipt_vals)
 
-                    except Exception,e:
-                        print e
-                elif printer["type"] == "network":
-                    print "attempting to print to printer '%s' (%s)" % (p_name,receipt["receipt_type"])
-                    try:
-                        s = socket()
-                        s.settimeout(5.0)
-                        s.connect((printer["address"],printer["port"]))
-                        s.sendall(output)
-                        s.close()
-                    except Exception,e:
-                        print e
+                if do_print:
+                    output = printer["formatter"].print_receipt(receipt_vals)
+                    if printer["type"] == "local":
+                        print "attempting to print to printer '%s' (%s)" % (p_name,receipt["receipt_type"])
+                        try:
+                            printer_file = open(printer["device"],"w")
+                            printer_file.write(output)
+                            printer_file.flush()
+                            printer_file.close()
 
+                        except Exception,e:
+                            print e
+                    elif printer["type"] == "network":
+                        print "attempting to print to printer '%s' (%s)" % (p_name,receipt["receipt_type"])
+                        try:
+                            s = socket()
+                            s.settimeout(5.0)
+                            s.connect((printer["address"],printer["port"]))
+                            s.sendall(output)
+                            s.close()
+                        except Exception,e:
+                            print e
+                else:
+                    print "Did not print to %s, predicate was false" % p_name
 
     def vfd_display(self,line1="",line2=""):
         out = "\x1b\x40\x1f\x24\x01\x01%s\x1f\x24\x01%s" % (self.vfd_formatter.truncate(line1),
