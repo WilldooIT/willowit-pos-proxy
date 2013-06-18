@@ -201,7 +201,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                         'product.product', 
                         ['name', 'list_price','price','pos_categ_id', 'taxes_id', 'ean13', 
                          'to_weight', 'uom_id', 'uos_id', 'uos_coeff', 'mes_type', 'description_sale', 'description',
-                         "discount_program_in_store_12","discount_program_in_store_6","volume"],
+                         "discount_program_in_store_12","discount_program_in_store_6","volume","is_wine"],
                         [['sale_ok','=',true],['available_in_pos','=',true]],
                         {pricelist: self.get('shop').pricelist_id[0]} // context for price
                     );
@@ -384,10 +384,11 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             this.line_type_code = ""
             this.line_note = ""
             this.manual_discount = false;
+            this.manual_price = false;
             this.type = 'unit';
             this.selected = false;
             this.glass = false;
-			this.real_quantity = 0;
+            this.real_quantity = 0;
         },
         // sets a discount [0,100]%
         set_discount: function(discount,auto){
@@ -444,11 +445,11 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                     this.quantityStr = '' + this.quantity;
                 }
             }
-			if(quantity !== "remove" && this.glass) {
-				this.real_quantity = quantity / round((this.product.get("volume") / glass.volume),4)
-			} else {
-				this.real_quantity = this.quantity
-			}
+            if(quantity !== "remove" && this.glass) {
+                this.real_quantity = quantity / round((this.product.get("volume") / glass.volume),4)
+            } else {
+                this.real_quantity = this.quantity
+            }
         },
         // return the quantity of product
         get_quantity: function(){
@@ -501,8 +502,8 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
             //    return false;
             }else if(this.price !== orderline.price){
                 return false;
-			} else if(this.glass || orderline.glass) {
-				return false;
+            } else if(this.glass || orderline.glass) {
+                return false;
             }else{ 
                 return true;
             }
@@ -513,21 +514,21 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 this.order.recalculateDiscount()
         },
         export_as_JSON: function() {
-        	if(this.glass == false) {
-				qty = this.get_quantity()
-				glass_qty = 0
-				unit_price = this.get_unit_price()
+            if(this.glass == false) {
+                qty = this.get_quantity()
+                glass_qty = 0
+                unit_price = this.get_unit_price()
 
-			} else {
-				qty = this.real_quantity
-				glass_qty = this.get_quantity()
-				unit_price = round(this.get_unit_price() * round((this.product.get("volume") / this.glass.volume),4),2)
-			}	
+            } else {
+                qty = this.real_quantity
+                glass_qty = this.get_quantity()
+                unit_price = round(this.get_unit_price() * round((this.product.get("volume") / this.glass.volume),4),2)
+            }   
             return {
                 qty: qty,
                 price_unit: unit_price,
-				glass_id: this.glass && this.glass.id || false,
-				glass_qty: glass_qty,
+                glass_id: this.glass && this.glass.id || false,
+                glass_qty: glass_qty,
                 discount: this.get_discount(),
                 product_id: this.get_product().get('id'),
                 line_type_code: this.line_type_code,
@@ -536,11 +537,11 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
         },
         //used to create a json of the ticket, to be sent to the printer
         export_for_printing: function(){
-        	if(this.glass == false) {
-				product_name = this.get_product().get("name")
-			} else {
-				product_name = this.glass.volume + "ml glass of " + this.get_product().get("name")
-			}	
+            if(this.glass == false) {
+                product_name = this.get_product().get("name")
+            } else {
+                product_name = this.glass.volume + "ml glass of " + this.get_product().get("name")
+            }   
             return {
                 quantity:           this.get_quantity(),
                 unit_name:          this.get_unit().name,
@@ -558,22 +559,23 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
         },
         // changes the base price of the product for this orderline
         set_unit_price: function(price){
+            this.manual_price = true;
             this.price = round(parseFloat(price) || 0, 2);
             this.trigger('change');
         },
         get_unit_price: function(){
-			if(this.glass == false) {
-				var rounding = this.pos.get('currency').rounding;
-				return round_pr(this.price,rounding);
-			} else {
-				var rounding = this.pos.get('currency').rounding;
-				price = Math.ceil(this.price * (this.glass.volume /  this.product.get("volume")) * 1.2)
-				return round_pr(price,rounding);
-			}
+            if(this.glass == false) {
+                var rounding = this.pos.get('currency').rounding;
+                return round_pr(this.price,rounding);
+            } else {
+                var rounding = this.pos.get('currency').rounding;
+                price = Math.ceil(this.price * (this.glass.volume /  this.product.get("volume")) * 1.2)
+                return round_pr(price,rounding);
+            }
         },
         get_display_price: function(){
             var rounding = this.pos.get('currency').rounding;
-			return  round_pr(round_pr(this.get_unit_price() * this.get_quantity(),rounding) * (1- this.get_discount()/100.0),rounding);
+            return round_pr(round_pr(this.get_unit_price() * this.get_quantity(),rounding) * (1 - this.get_discount()/100.0),rounding);
         },
         get_price_without_tax: function(){
             return this.get_all_prices().priceWithoutTax;
@@ -760,34 +762,23 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                     line.product.set("taxes_id",[])
                     
                     line.set_quantity_silent(Math.abs(line.quantity))
-                    //if(self.transaction_mode == "w_off") {
-                    //    line.set_quantity_silent(0-Math.abs(line.quantity))
-                    //} else {
-                    //    line.set_quantity_silent(Math.abs(line.quantity))
-                    //}
                     line.trigger("change")       
                 })
             } else {
                 totalQuantity = 0
-                //set quantities, taxes based on transaction mode
                 _.each(lines.models,function(line) {
-					if(line.glass == false) {
-						totalQuantity += Math.abs(line.quantity)
-					}
+                    if(line.glass == false) {
+                        totalQuantity += Math.abs(line.quantity)
+                    }
                     line.line_type_code = self.transaction_mode && self.transaction_mode.toUpperCase() || "NORMAL"
-                   // if(self.transaction_mode == "refund") {
-                   //     line.set_quantity_silent(0-Math.abs(line.quantity))
-                   // } else {
-                   //     line.set_quantity_silent(Math.abs(line.quantity))
-                   // }
                     line.product.set("taxes_id",self.pos.db.get_product_by_id(line.product.id).taxes_id)
                 })
                 _.each(lines.models, function(line) {
                     if( (!line.manual_discount 
-							&& (self.transaction_mode == "refund" || self.transaction_mode == "tstng"))
-						|| line.glass)  {
+                         && (self.transaction_mode == "refund" 
+                         || self.transaction_mode == "tstng")))  {
                         line.set_discount_silent(0,true);
-                    } else {
+                    } else if(line.glass == false) {
                         if( totalQuantity >= 12 &&
                             line.product.get("discount_program_in_store_12") && 
                             !line.manual_discount) {
@@ -922,6 +913,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 table:  table,
                 order_number: order_number,
                 orderlines: orderlines,
+                is_takeaway: is_takeaway,
                 paymentlines: paymentlines,
                 subtotal: this.getSubtotal(),
                 total_with_tax: this.getTotalTaxIncluded(),

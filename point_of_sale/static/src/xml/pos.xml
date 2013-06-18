@@ -15,10 +15,10 @@
 						<div class="select-label">Mode:</div>
 						<select id="mode-selector">
 							<option value="normal" id="sale-mode-option" class="active">Sale</option>
-							<option value="refund" id="refund-mode-option">Rfnd</option>
+							<option value="refund" id="refund-mode-option">Refund</option>
 							<option value="w_off" id="write-off-mode-option">W/Off</option>
 							<option value="w_on"  id="write-on-mode-option">W/On</option>
-							<option value="tstng" id="tasting-write-off-mode-option">Opn Btl</option>
+							<option value="tstng" id="tasting-write-off-mode-option">Open Bottle</option>
 						</select>
 					</div>
 					<div class="select-wrapper">
@@ -48,7 +48,7 @@
 							<option value="__none__">-</option>	
 						</select>
 					</div>
-                    <!-- here goes header buttons -->
+						<button class="input-button" id="reason-button" disabled="disabled" style="opacity:0.5">Comment</button>
                 </div>
             </div>
             <div id="content">
@@ -134,7 +134,6 @@
                 <img src="/point_of_sale/static/src/img/backspace.png" width="24" height="21" />
             </button>
             <br />
-            <button class="input-button" id="reason-button" style="width:204px;">Comment</button>
         </div>
     </t>
 
@@ -422,6 +421,9 @@
                     <option class="op_w_off" value="stocktake adjustment w/off">Stocktake Adjustment</option>
                     <option class="op_w_on" value="stocktake adjustment w/on">Stocktake Adjustment</option>
                     <option class="op_w_on" value="transfer in">Store Transfer In</option>
+                    <option class="op_discount" value="discount shopsoiled">Shopsoiled</option>
+                    <option class="op_discount" value="discount managers special">Managers Special</option>
+                    <option class="op_discount" value="discount customer relations">Customer Relations</option>
                 </select>
                 <button id="reason-ok-button">Ok</button>
             </div>
@@ -554,6 +556,9 @@
 				</span>
 				<span class="price">
 					<t t-esc="widget.format_currency(widget.model.get_display_price())"/>
+					<t t-if="widget.model.manual_price">
+						<em>(M)</em>
+					</t>
 				</span>
 				<ul class="info-list">
 					<t t-if="widget.model.get_quantity_str() !== '1'">
@@ -581,7 +586,8 @@
 			</t>
 			<t t-if="widget.model.glass != false">
 				<span class="product-name">
-					Glass of
+					<t t-esc="widget.model.glass.volume" />
+					ml Glass of
 					<t t-esc="widget.model.get_product().get('name')"/>
 				</span>
 				<span class="price">
@@ -592,6 +598,15 @@
 						<t t-esc="widget.model.get_quantity()" /> Glass(es) @ 
 						<t t-esc="widget.format_currency(widget.model.get_unit_price())" />
 					</li>
+					<t t-if="widget.model.get_discount_str() !== '0'">
+						<li class="info">
+							With a 
+							<em>
+								<t t-esc="widget.model.get_discount_str()" />%
+							</em>
+							discount
+						</li>
+					</t>
 				</ul>
 			</t>
         </li>

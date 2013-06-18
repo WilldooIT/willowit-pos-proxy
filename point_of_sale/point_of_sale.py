@@ -1208,7 +1208,6 @@ class pos_order_line(osv.osv):
                 qty = (line.glass_qty / (line.product_id.volume / line.glass_id.volume))
             else:
                 qty = line.qty
-
             price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
             if line.line_type_code in ["W_ON","W_OFF"]:
                 taxes = account_tax_obj.compute_all(cr, uid, [], price, qty, product=line.product_id, partner=line.order_id.partner_id or False)
