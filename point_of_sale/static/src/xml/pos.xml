@@ -22,9 +22,9 @@
 						</select>
 					</div>
 					<div class="select-wrapper">
-						<button class="neworder-button">Park</button>
-						<button class="void-button">Void</button>
-						<button class="reprint-button">Print</button>
+						<button class="neworder-button"><img src="/point_of_sale/static/src/img/FLOPPY.png" /></button>
+						<button class="void-button"><img src="/point_of_sale/static/src/img/BURN.png" /></button>
+						<button class="reprint-button"><img src="/point_of_sale/static/src/img/PRINTER.png" /></button>
                     </div>
                     <div class="select-wrapper" id="takeaway-wrapper">
                         <div class="select-label">Takeaway</div>
@@ -48,7 +48,7 @@
 							<option value="__none__">-</option>	
 						</select>
 					</div>
-						<button class="input-button" id="reason-button" disabled="disabled" style="opacity:0.5">Comment</button>
+						<button class="input-button" id="reason-button" disabled="disabled" style="opacity:0.5"><img src="/point_of_sale/static/src/img/CHAT.png" /></button>
                 </div>
             </div>
             <div id="content">

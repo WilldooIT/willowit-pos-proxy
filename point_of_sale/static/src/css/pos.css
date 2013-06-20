@@ -207,9 +207,13 @@
 .point-of-sale li.order-selector-button {
     display: inline;
 }
+#rightheader button img {
+	height:44px;
+	width:44px;
+}
 .point-of-sale #mode-selector,#orders,#table-selector,#glass-selector {
     display:inline;
-    width:150px;
+    width:135px;
 	font-size:18pt;
 	padding:5px;
 }
