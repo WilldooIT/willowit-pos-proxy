@@ -217,6 +217,9 @@
 	font-size:18pt;
 	padding:5px;
 }
+#glass-selector-wrapper {
+	display: none;
+}
 button.active {
     color:#000;
     background-color: #c02c2c;

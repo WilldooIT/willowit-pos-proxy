@@ -42,7 +42,7 @@
 							<option value="__none__">-</option>	
 						</select>
 					</div>
-					<div class="select-wrapper">
+					<div class="select-wrapper" id="glass-selector-wrapper">
 						<div class="select-label">Wine by the Glass:</div>
 						<select id="glass-selector">
 							<option value="__none__">-</option>	
