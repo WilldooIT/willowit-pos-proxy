@@ -1,0 +1,5 @@
+"id","name","model_id:id","group_id:id","perm_read","perm_write","perm_create","perm_unlink"
+"access_wexi_wine_classifications_type_mnt","wexi.wine.classifications.type.mnt","model_wexi_wine_type","wexi_wine_classifications.group_wexi_wine_classifications_mnt",1,1,1,1
+"access_wexi_wine_classifications_region_mnt","wexi.wine.classifications.region.mnt","model_wexi_wine_region","wexi_wine_classifications.group_wexi_wine_classifications_mnt",1,1,1,1
+"access_wexi_wine_classifications_type_user","wexi.wine.classifications.type.user","model_wexi_wine_type","base.group_user",1,0,0,0
+"access_wexi_wine_classifications_region_user","wexi.wine.classifications.region.user","model_wexi_wine_region","base.group_user",1,0,0,0

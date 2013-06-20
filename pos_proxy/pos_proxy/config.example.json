@@ -1,0 +1,47 @@
+{
+    "cookbook":"cookbook.txt",
+    "cookbook_url":"http://localhost:999",
+    "vfd_col_width":20,
+    "vfd_device":"/dev/stdout",
+    "vfd_clear_after":5,
+    "scan_sync_delay":5,
+    "scan_system_active":false,
+    "scan_system_url":"http://192.168.100.243",
+	"scan_db_name":"merchants_store_demo_1",
+	"scan_db_user":"admin",
+	"scan_db_pass":"admin",
+	"printers":{
+		"main":{
+            "active":true,
+			"col_width":40,
+			"destination":"printer",
+			"type":"local",
+			"device":"/dev/stdout",
+			"address":"192.168.100.243",
+			"port":9100,
+            "receipt_types":["Customer"]
+        },
+		"main2":{
+            "active":false,
+			"col_width":40,
+			"destination":"printer",
+			"type":"local",
+			"device":"/dev/stdout",
+			"address":"192.168.100.243",
+			"port":9100,
+            "receipt_types":["Store"]
+        },
+		"kitchen":{
+            "active":false,
+            "predicate":"lambda r: r['is_takeaway'] or r['table']",
+			"col_width":40,
+			"destination":"printer",
+			"type":"network",
+			"device":"/dev/stdout",
+			"address":"192.168.100.243",
+			"port":9100,
+            "receipt_types":["Kitchen"]
+        }
+	},
+    "listen_port":8069
+}

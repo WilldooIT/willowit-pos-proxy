@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<openerp>
+	<data>
+		<record model='ir.ui.view' id='wexi_product_wine_classifications_form_view'>
+			<field name='name'>WEXI Product Wine Classifications</field>
+			<field name='model'>product.product</field>
+			<field name='type'>form</field>
+			<field name='inherit_id' ref='product.product_normal_form_view'/>
+			
+			<field name="arch" type="xml">
+				<!--<xpath expr="//form[@string='Product']/group[position()=1]" position="attributes">
+					<attribute name="col">8</attribute>
+				</xpath> -->
+				
+				
+<!--				index for position is 1 based, not 0 based.-->
+				<xpath  expr="//page[@string='Inventory']"  position="after">
+					<page string="Wine Specifications" >
+						<group col="2">
+							<field name = 'is_wine' on_change='on_change_is_wine(is_wine, region_id, type_id, stored_region_id, stored_type_id)'/>
+							<field name = 'region_id' attrs="{'readonly' : [('is_wine', '!=', True)],}"/>
+							<field name = 'type_id' attrs="{'readonly' : [('is_wine', '!=', True)],}"/>
+							<field name = 'stored_region_id' invisible='1'/>
+							<field name = 'stored_type_id' invisible='1'/>
+						</group>
+					</page>
+				</xpath>
+			</field>
+		</record>
+		
+		<record id="wexi_product_wine_classifications_search_view" model="ir.ui.view">
+			<field name="name">WEXI Product Wine Classifications</field>
+			<field name="model">product.product</field>
+			<field name="type">search</field>
+			<field name='inherit_id' ref='product.product_search_form_view'/>
+			
+			<field name="arch" type="xml">
+				<xpath expr="//filter[@string='Services']" position = "before">
+					<filter string="Wines" icon="terp-accessories-archiver" domain="[('is_wine','=',True)]"/>
+					<separator orientation="vertical"/>
+				</xpath>
+			</field>
+		</record>
+		
+	</data>
+</openerp>
