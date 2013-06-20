@@ -11,18 +11,44 @@
                     <span class="placeholder-UsernameWidget"></span>
                 </div>
                 <div id="rightheader">
-                    <div id="mode-selector">
-                        <button  id="sale-mode-button" class="active">Sale</button>
-                        <button  id="refund-mode-button">Refund</button>
-                        <button  id="write-off-mode-button">Write Off</button>
-                        <button  id="write-on-mode-button">Write On</button>
+					<div class="select-wrapper">
+						<div class="select-label">Mode:</div>
+						<select id="mode-selector">
+							<option value="normal" id="sale-mode-option" class="active">Sale</option>
+							<option value="refund" id="refund-mode-option">Refund</option>
+							<option value="w_off" id="write-off-mode-option">W/Off</option>
+							<option value="w_on"  id="write-on-mode-option">W/On</option>
+							<option value="tstng" id="tasting-write-off-mode-option">Open Bottle</option>
+						</select>
+					</div>
+					<div class="select-wrapper">
+						<button class="neworder-button"><img src="/point_of_sale/static/src/img/FLOPPY.png" /></button>
+						<button class="void-button"><img src="/point_of_sale/static/src/img/BURN.png" /></button>
+						<button class="reprint-button"><img src="/point_of_sale/static/src/img/PRINTER.png" /></button>
                     </div>
-                    <div id="order-selector">
-                        <button class="neworder-button">+</button>
-						<button class="void-button">Void</button>
-                        <ol id="orders"></ol>
-                    </div>
-                    <!-- here goes header buttons -->
+                    <div class="select-wrapper" id="takeaway-wrapper">
+                        <div class="select-label">Takeaway</div>
+						<input type="checkbox" id="takeaway-button" class="takeaway-button"></input>
+					</div>
+					<div id="order-selector" class="select-wrapper">
+							<span>
+								<div class="select-label">Orders:</div>
+								<select id="orders"></select>
+							</span>
+					</div>
+					<div class="select-wrapper">
+						<div class="select-label">Table:</div>
+						<select id="table-selector">
+							<option value="__none__">-</option>	
+						</select>
+					</div>
+					<div class="select-wrapper" id="glass-selector-wrapper">
+						<div class="select-label">Wine by the Glass:</div>
+						<select id="glass-selector">
+							<option value="__none__">-</option>	
+						</select>
+					</div>
+						<button class="input-button" id="reason-button" disabled="disabled" style="opacity:0.5"><img src="/point_of_sale/static/src/img/CHAT.png" /></button>
                 </div>
             </div>
             <div id="content">
@@ -108,7 +134,6 @@
                 <img src="/point_of_sale/static/src/img/backspace.png" width="24" height="21" />
             </button>
             <br />
-            <button class="input-button" id="reason-button" style="width:204px;">Comment</button>
         </div>
     </t>
 
@@ -396,6 +421,9 @@
                     <option class="op_w_off" value="stocktake adjustment w/off">Stocktake Adjustment</option>
                     <option class="op_w_on" value="stocktake adjustment w/on">Stocktake Adjustment</option>
                     <option class="op_w_on" value="transfer in">Store Transfer In</option>
+                    <option class="op_discount" value="discount shopsoiled">Shopsoiled</option>
+                    <option class="op_discount" value="discount managers special">Managers Special</option>
+                    <option class="op_discount" value="discount customer relations">Customer Relations</option>
                 </select>
                 <button id="reason-ok-button">Ok</button>
             </div>
@@ -522,35 +550,65 @@
 
     <t t-name="OrderlineWidget">
         <li class="orderline">
-            <span class="product-name">
-                <t t-esc="widget.model.get_product().get('name')"/>
-            </span>
-            <span class="price">
-                <t t-esc="widget.format_currency(widget.model.get_display_price())"/>
-            </span>
-            <ul class="info-list">
-                <t t-if="widget.model.get_quantity_str() !== '1'">
-                    <li class="info">
-                        <em>
-                            <t t-esc="widget.model.get_quantity_str()" />
-                        </em>
-                        <t t-esc="widget.model.get_unit().name" />
-                        at
-                        <t t-esc="widget.format_currency(widget.model.get_unit_price())" />
-                        /
-                        <t t-esc="widget.model.get_unit().name" />
-                    </li>
-                </t>
-                <t t-if="widget.model.get_discount_str() !== '0'">
-                    <li class="info">
-                        With a 
-                        <em>
-                            <t t-esc="widget.model.get_discount_str()" />%
-                        </em>
-                        discount
-                    </li>
-                </t>
-            </ul>
+			<t t-if="widget.model.glass == false">
+				<span class="product-name">
+					<t t-esc="widget.model.get_product().get('name')"/>
+				</span>
+				<span class="price">
+					<t t-esc="widget.format_currency(widget.model.get_display_price())"/>
+					<t t-if="widget.model.manual_price">
+						<em>(M)</em>
+					</t>
+				</span>
+				<ul class="info-list">
+					<t t-if="widget.model.get_quantity_str() !== '1'">
+						<li class="info">
+							<em>
+								<t t-esc="widget.model.get_quantity_str()" />
+							</em>
+							<t t-esc="widget.model.get_unit().name" />
+							at
+							<t t-esc="widget.format_currency(widget.model.get_unit_price())" />
+							/
+							<t t-esc="widget.model.get_unit().name" />
+						</li>
+					</t>
+					<t t-if="widget.model.get_discount_str() !== '0'">
+						<li class="info">
+							With a 
+							<em>
+								<t t-esc="widget.model.get_discount_str()" />%
+							</em>
+							discount
+						</li>
+					</t>
+				</ul>
+			</t>
+			<t t-if="widget.model.glass != false">
+				<span class="product-name">
+					<t t-esc="widget.model.glass.volume" />
+					ml Glass of
+					<t t-esc="widget.model.get_product().get('name')"/>
+				</span>
+				<span class="price">
+					<t t-esc="widget.format_currency(widget.model.get_display_price())"/>
+				</span>
+				<ul class="info-list">
+					<li class="info">
+						<t t-esc="widget.model.get_quantity()" /> Glass(es) @ 
+						<t t-esc="widget.format_currency(widget.model.get_unit_price())" />
+					</li>
+					<t t-if="widget.model.get_discount_str() !== '0'">
+						<li class="info">
+							With a 
+							<em>
+								<t t-esc="widget.model.get_discount_str()" />%
+							</em>
+							discount
+						</li>
+					</t>
+				</ul>
+			</t>
         </li>
     </t>
     <t t-name="PaymentlineWidget">
@@ -566,18 +624,21 @@
     </t>
 
     <t t-name="PaypadButtonWidget">
-        <button class="paypad-button" t-att-data-adjustment-method="widget.cashRegister.get('journal').adjustment_payment_method and 'true' or 'false'"  t-att-cash-register-id="widget.cashRegister.get('id')">
+        <button class="paypad-button" 
+			t-att-data-adjustment-method="widget.cashRegister.get('journal').adjustment_payment_method and 'true' or 'false'"  
+			t-att-data-tasting-method="widget.cashRegister.get('journal').tasting_payment_method and 'true' or 'false'"  
+			t-att-cash-register-id="widget.cashRegister.get('id')">
             <t t-esc="widget.cashRegister.get('journal').name"/>
         </button>
         <br />
     </t>
 
     <t t-name="OrderButtonWidget">
-        <li class="order-selector-button">
-            <button class="select-order"><t t-esc="(widget.order.get('cashier') ? widget.order.get('cashier').name.split(' ')[0]+' : ':'') + widget.order.get('creationDate').toString('t')"/></button>
-        </li>
+        <option t-att-value="widget.order.cid"  class="order-selector-button">
+            <t t-esc="'['+widget.order.get('num')+'] ' + (widget.order.get('cashier') ? widget.order.get('cashier').name.split(' ')[0]:'') + (widget.order.get('table') ? ' ( ' + widget.order.get('table').name + ' )' : '')
+"/>
+        </option>
     </t>
-
     <t t-name="UsernameWidget">
         <span class="username">
             <t t-esc="widget.get_name()" />

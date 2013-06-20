@@ -33,6 +33,7 @@
         },
 		"kitchen":{
             "active":false,
+            "predicate":"lambda r: r['is_takeaway'] or r['table']",
 			"col_width":40,
 			"destination":"printer",
 			"type":"network",

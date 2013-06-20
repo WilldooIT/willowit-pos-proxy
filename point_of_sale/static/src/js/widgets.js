@@ -63,19 +63,9 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
             this.changedMode();
             this.$el.find('button#numpad-backspace').click(_.bind(this.clickDeleteLastChar, this));
             //this.$el.find('button#numpad-minus').click(_.bind(this.clickSwitchSign, this));
-            this.$el.find('button#reason-button').click(_.bind(this.clickReason, this));
             this.$el.find('button.number-char').click(_.bind(this.clickAppendNewChar, this));
             this.$el.find('button.mode-button').click(_.bind(this.clickChangeMode, this));
 
-        },
-        clickReason: function() {
-			if(this.pos.get("selectedOrder").selected_orderline) {
-				t_type = this.pos.get("selectedOrder").transaction_mode
-				this.pos_widget.screen_selector.show_popup("reason")
-				$("#orderline_text")[0].value = ""
-				$("#orderline_text option").hide()
-				$("option.op_" + t_type).show()
-			}
         },
         clickDeleteLastChar: function() {
             return this.state.deleteLastChar();
@@ -133,23 +123,31 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     console.warn('TODO should not get there...?');
                     return;
                 }
-				if(!self.pos.get("selectedOrder").get("scan_unlocked")) {
-					alert("Please scan in to make a sale")
-					return
-				}
+                if(!self.pos.get("selectedOrder").get("scan_unlocked")) {
+                    alert("Please scan in to make a sale")
+                    return
+                }
                 mode = self.pos.get("selectedOrder").transaction_mode
-                if(mode == "refund" || mode == "w_on" || mode == "w_off") {
-                    var allLinesCommented = true
-                    _.each(self.pos.get("selectedOrder").get("orderLines").models,function(line) {
-                        if(line.line_note === "" || line.line_note === undefined) {
-                            allLinesCommented = false
-                          
+                var allLinesCommented = true
+                var discountedLinesUncommented = false
+                var message = ""
+                _.each(self.pos.get("selectedOrder").get("orderLines").models,function(line) {
+                    if(line.line_note === "" || line.line_note === undefined) {
+                        allLinesCommented = false
+                        if(line.manual_discount) {
+                            discountedLinesUncommented = true
                         }
-                    });
-                    if(!allLinesCommented) {
-                        alert("Not all lines are commented")
-                        return
                     }
+                });
+                if(discountedLinesUncommented) {
+                    message = "One or more discounted lines have not been commented.\n"
+                }
+                if(!allLinesCommented && (mode == "refund" || mode == "w_on" || mode == "w_off")) {
+                    message += "All lines must be commented in this transaction mode."
+                }
+                if(message) {
+                    alert(message)
+                    return
                 }
                 self.pos.get('selectedOrder').addPaymentLine(self.cashRegister);
                 self.pos_widget.screen_selector.set_current_screen('payment');
@@ -197,18 +195,18 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
             this.orderlinewidgets = [];
         },
         set_numpad_state: function(numpadState) {
-        	if (this.numpadState) {
-        		this.numpadState.unbind('set_value', this.set_value);
-        	}
-        	this.numpadState = numpadState;
-        	if (this.numpadState) {
-        		this.numpadState.bind('set_value', this.set_value, this);
-        		this.numpadState.reset();
-        	}
+            if (this.numpadState) {
+                this.numpadState.unbind('set_value', this.set_value);
+            }
+            this.numpadState = numpadState;
+            if (this.numpadState) {
+                this.numpadState.bind('set_value', this.set_value, this);
+                this.numpadState.reset();
+            }
         },
         set_value: function(val) {
-        	var order = this.pos.get('selectedOrder');
-        	if (order.get('orderLines').length !== 0) {
+            var order = this.pos.get('selectedOrder');
+            if (order.get('orderLines').length !== 0) {
                 var mode = this.numpadState.get('mode');
                 if( mode === 'quantity'){
                     order.getSelectedLine().set_quantity(val);
@@ -217,9 +215,9 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                 }else if( mode === 'price'){
                     order.getSelectedLine().set_unit_price(val);
                 }
-        	} else {
-        	    this.pos.get('selectedOrder').destroy();
-        	}
+            } else {
+                this.pos.get('selectedOrder').destroy();
+            }
         },
         change_selected_order: function() {
             this.currentOrderLines.unbind();
@@ -257,15 +255,18 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
             }else if(this.display_mode !== 'numpad'){
                 console.error('ERROR: OrderWidget renderElement(): wrong display_mode:',this.display_mode);
             }
-
             var $content = this.$('.orderlines');
             this.currentOrderLines.each(_.bind( function(orderLine) {
                 var line = new module.OrderlineWidget(this, {
                         model: orderLine,
                         order: this.pos.get('selectedOrder'),
                 });
-            	line.on('order_line_selected', self, self.update_numpad);
+                line.on('order_line_selected', self, self.update_numpad);
+                line.on('order_line_selected', self, self.update_glass_selector);
+                line.on('order_line_selected', self, self.update_reason_button);
                 line.on('order_line_refreshed', self, self.update_summary);
+                line.on('order_line_refreshed', self, self.update_glass_selector);
+                line.on('order_line_refreshed', self, self.update_reason_button);
                 line.appendTo($content);
                 self.orderlinewidgets.push(line);
             }, this));
@@ -295,6 +296,19 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                 this.scrollbar.set_position(Number.MAX_VALUE, false);
             }
 
+            self.pos_widget.updateGlassSelector()
+        },
+        update_reason_button:function() {
+            var self = this
+            if(self.pos.get("selectedOrder").transaction_mode == "normal" && !self.pos.get("selectedOrder").selected_orderline.manual_discount) {
+                $("#reason-button").attr("disabled",true).css("opacity",0.5)
+            } else {
+                $("#reason-button").removeAttr("disabled").css("opacity",1)
+            }
+        },
+        update_glass_selector:function() {
+            var self = this
+            self.pos_widget.updateGlassSelector()
         },
         update_summary: function(){
             var order = this.pos.get('selectedOrder');
@@ -349,8 +363,8 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
             }
         },
         changedAmount: function() {
-        	if (this.amount !== this.payment_line.get_amount()){
-        		this.renderElement();
+            if (this.amount !== this.payment_line.get_amount()){
+                this.renderElement();
             }
         },
         renderElement: function() {
@@ -381,27 +395,26 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
             this.order = options.order;
             this.order.bind('destroy',function(){ self.destroy(); });
             this.order.bind('change', function(){ self.renderElement(); });
-            this.pos.bind('change:selectedOrder', _.bind( function(pos) {
-                var selectedOrder;
-                selectedOrder = pos.get('selectedOrder');
-                if (this.order === selectedOrder) {
-                    this.setButtonSelected();
-                }
-            }, this));
+            $("#orders").change(_.bind(this.orderChanged,this));
+        },
+        orderChanged:function(event) {
+            order = this.pos.get("orders").getByCid($("#orders").val())
+            this.pos.set("selectedOrder",order)
         },
         renderElement:function(){
-            this._super();
-            this.$('button.select-order').off('click').click(_.bind(this.selectOrder, this));
-            this.$('button.close-order').off('click').click(_.bind(this.closeOrder, this));
+            this._super()
+            selectedOrder = this.pos.get('selectedOrder')
+
+            if(selectedOrder) {
+                $("#orders option").attr("selected","selected") 
+                $("#orders option[value='" + this.pos.get("selectedOrder").cid + "']").attr("selected","selected")
+            }
         },
         selectOrder: function(event) {
             this.pos.set({
                 selectedOrder: this.order
             });
-        },
-        setButtonSelected: function() {
-            $('.selected-order').removeClass('selected-order');
-            this.$el.addClass('selected-order');
+            this.renderElement()
         },
         closeOrder: function(event) {
             this.order.destroy();
@@ -688,7 +701,7 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
         },
         get_name: function(){
             var user;
-			user = this.pos.get('selectedOrder').get("cashier");
+            user = this.pos.get('selectedOrder').get("cashier");
             if(user){
                 return user.name;
             }else{
@@ -862,7 +875,6 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
             this.cashier_controls_visible = true;
             this.image_cache = new module.ImageCache(); // for faster products image display
         },
-      
         start: function() {
             var self = this;
             return self.pos.ready.done(function() {
@@ -871,14 +883,31 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                 self.$('.neworder-button').click(function(){
                     self.pos.add_new_order();
                 });
+                self.$(".reprint-button").click(function() {
+                    json_receipt = self.pos.get("selectedOrder").export_for_printing()
+                    json_receipt["partial"] = true
+                    self.pos.proxy.print_receipt(json_receipt)
+                })
+                self.$(".takeaway-button").click(function() {
+                    is_takeaway = $(".takeaway-button").prop("checked")
+                    self.pos.get("selectedOrder").set("is_takeaway",is_takeaway)
+                });
                 self.$('.void-button').click(function(){
                     self.pos.clear_current_order();
                 });
-                self.$("#sale-mode-button").click(_.bind(self.saleButtonClicked,self));
-                self.$("#refund-mode-button").click(_.bind(self.refundButtonClicked,self));
-                self.$("#write-on-mode-button").click(_.bind(self.writeOnButtonClicked,self));
-                self.$("#write-off-mode-button").click(_.bind(self.writeOffButtonClicked,self));
-                
+                self.$("#mode-selector").change(_.bind(self.modeChanged,self));
+                for(i in self.pos.get("table_list")) {
+                    name = self.pos.get("table_list")[i].name
+                    id = self.pos.get("table_list")[i].id
+                    self.$("#table-selector").append("<option value='" + id + "'>" + name + "</option>")
+                }
+                self.$("#table-selector").change(_.bind(self.tableChanged,self));
+                for(i in self.pos.get("glass_sizes")) {
+                    name = self.pos.get("glass_sizes")[i].name
+                    id = self.pos.get("glass_sizes")[i].id
+                    self.$("#glass-selector").append("<option value='" + id + "'>" + name + "</option>")
+                }
+                self.$("#glass-selector").change(_.bind(self.glassChanged,self));
                 //when a new order is created, add an order button widget
                 self.pos.get('orders').bind('add', function(new_order){
                     var new_order_button = new module.OrderButtonWidget(null, {
@@ -889,6 +918,8 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     new_order_button.selectOrder();
                 }, self);
 
+                $('#reason-button').click(function() {
+                    self.clickReason()});
                 self.pos.get('orders').add(new module.Order({ pos: self.pos }));
                 self.pos.bind('change:selectedOrder', _.bind( function(pos) {
                     self.refreshForMode(self);
@@ -932,71 +963,157 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     }, self));
             });
         },
+        clickReason: function() {
+            orderline = this.pos.get("selectedOrder").selected_orderline 
+            if(orderline) {
+                t_type = this.pos.get("selectedOrder").transaction_mode
+                this.screen_selector.show_popup("reason")
+                $("#orderline_text")[0].value = ""
+                $("#orderline_text option").hide()
+                if(orderline.manual_discount) {
+                    $("option.op_discount").show()
+                } else {
+                    $("option.op_" + t_type).show()
+                }
+            }
+        },
+        tableChanged:function(self) {
+            selectedId = this.$("#table-selector").val()
+            selectedOrder = this.pos.get("selectedOrder")
+            if(selectedId == "__none__") {
+                selectedOrder.set("table",false)
+            } else {
+                tables = this.pos.get("table_list")
+                for(i in tables) {
+                    if(tables[i].id.toString() == selectedId) {
+                        selectedOrder.set("table",tables[i])
+                    }
+                }
+            }
+            this.refreshForMode(this)
+        },
+        modeChanged:function(self) {
+            var self = this
+            self.pos.get("selectedOrder").transaction_mode  = $("#mode-selector").val() 
+            self.refreshForMode(self)
+        },
+        glassChanged:function() {
+            var self = this
+            selectedOrder = self.pos.get("selectedOrder")
+            if(selectedOrder && selectedOrder.selected_orderline) {
+                glass_id = $("#glass-selector").val()
+                if(glass_id == "__none__") {
+                    glass = false
+                } else {
+                    glasses = this.pos.get("glass_sizes")
+                    for(i in glasses) {
+                        if(glasses[i].id == glass_id) {
+                            glass = glasses[i]
+                            break;
+                        } 
+                    }
+                }
+                
+                selectedOrder.selected_orderline.glass = glass
+                selectedOrder.selected_orderline.set_quantity(selectedOrder.selected_orderline.quantity)
+                self.updateGlassSelector()
+                selectedOrder.selected_orderline.trigger("change")
+            }
+        },
+        updateGlassSelector:function() {
+            var self = this
+            selectedOrder = self.pos.get("selectedOrder")
+            if(selectedOrder.transaction_mode == "normal" || selectedOrder.transaction_mode == "refund") {
+                if(selectedOrder && selectedOrder.selected_orderline && selectedOrder.selected_orderline.product.get("is_wine")) {
+                    if(selectedOrder.selected_orderline.glass.id) {
+                        //selectedOrder.selected_orderline.set_discount_silent(0)
+                        $("#glass-selector option").removeAttr("selected")
+                        $("#glass-selector option[value='" + selectedOrder.selected_orderline.glass.id + "']").attr("selected","selected")
+                    } else {
+                        $("#glass-selector option").removeAttr("selected")
+                        $("#glass-selector option[value='__none__']").attr("selected","selected")
+                    }
+                    $("#glass-selector").removeAttr("disabled")
+                } else {
+                    $("#glass-selector option[value='__none__']").attr("selected","selected")
+                    $("#glass-selector").attr("disabled","disabled")
+                }
+            } else {
+                $("#glass-selector").attr("disabled","disabled")
+            }
+        },
         refreshForMode:function(self) {
             //var self = this
-            $("#mode-selector button").removeClass("active")
+            $("#mode-selector option").attr("selected",false)
             mode = self.pos.get("selectedOrder").transaction_mode
+            currentTable =  self.pos.get("selectedOrder").get("table")
+            if(currentTable) {
+                $("#table-selector option").attr("selected",false)
+                $("#table-selector option[value='" +currentTable.id.toString() + "']").attr("selected","selected")
+
+                self.pos.get("selectedOrder").set("is_takeaway",false)
+                $("#takeaway-button").attr("disabled","disabled")
+            } else {
+                $("#table-selector option[value='__none__']").attr("selected","selected")
+
+                $("#takeaway-button").removeAttr("disabled")
+            }
+            $("#takeaway-button").prop("checked",self.pos.get("selectedOrder").get("is_takeaway"))
+
             switch(mode) {
                 case "normal":
+                    this.updateGlassSelector()
                     $("#topheader").removeClass("active")
-                    $("#sale-mode-button").addClass("active")
-                    $("#reason-button").fadeOut()
-					$(".order-container").css("bottom","361px");
-                    $("#paypad button[data-adjustment-method='true']").fadeOut()
-                    $("#paypad button[data-adjustment-method='false']").fadeIn()
-					self.pos.get("selectedOrder").recalculateDiscount()
+                    $("#sale-mode-option").attr("selected","selected")
+                    //$("#reason-button").fadeOut()
+                    //$(".order-container").css("bottom","361px");
+                    $("#paypad button[data-adjustment-method='false']").show()
+                    $("#paypad button[data-adjustment-method='true']").hide()
+                    $("#paypad button[data-tasting-method='true']").hide()
+                    self.pos.get("selectedOrder").recalculateDiscount()
                     break;
                 case "refund":
+                    this.updateGlassSelector()
                     $("#topheader").addClass("active")
-                    $("#refund-mode-button").addClass("active")
-                    $("#reason-button").fadeIn()
-					$(".order-container").css("bottom","426px");
-                    $("#paypad button[data-adjustment-method='true']").fadeOut()
-                    $("#paypad button[data-adjustment-method='false']").fadeIn()
-					self.pos.get("selectedOrder").recalculateDiscount()
+                    $("#refund-mode-option").attr("selected","selected")
+                    //$("#reason-button").show()
+                    //$(".order-container").css("bottom","426px");
+                    $("#paypad button[data-adjustment-method='false']").show()
+                    $("#paypad button[data-adjustment-method='true']").hide()
+                    $("#paypad button[data-tasting-method='true']").hide()
+                    self.pos.get("selectedOrder").recalculateDiscount()
                     break;
                 case "w_on":
+                    $("#glass-selector").attr("disabled","disabled")
                     $("#topheader").addClass("active")
-                    $("#write-on-mode-button").addClass("active")
-                    $("#reason-button").fadeIn()
-					$(".order-container").css("bottom","426px");
-                    $("#paypad button").fadeOut()
-                    $("#paypad button[data-adjustment-method='true']").fadeIn()
-					self.pos.get("selectedOrder").recalculateDiscount()
+                    $("#write-on-mode-option").attr("selected","selected")
+                    //$("#reason-button").show()
+                    //$(".order-container").css("bottom","426px");
+                    $("#paypad button").hide()
+                    $("#paypad button[data-adjustment-method='true']").show()
+                    self.pos.get("selectedOrder").recalculateDiscount()
                     break;
                 case "w_off":
+                    $("#glass-selector").attr("disabled","disabled")
                     $("#topheader").addClass("active")
-                    $("#write-off-mode-button").addClass("active")
-                    $("#reason-button").fadeIn()
-					$(".order-container").css("bottom","426px");
-                    $("#paypad button").fadeOut()
-                    $("#paypad button[data-adjustment-method='true']").fadeIn()
-					self.pos.get("selectedOrder").recalculateDiscount()
+                    $("#write-off-mode-option").attr("selected","selected")
+                    //$("#reason-button").show()
+                    //$(".order-container").css("bottom","426px");
+                    $("#paypad button").hide()
+                    $("#paypad button[data-adjustment-method='true']").show()
+                    self.pos.get("selectedOrder").recalculateDiscount()
+                    break;
+                case "tstng":
+                    $("#glass-selector").attr("disabled","disabled")
+                    $("#topheader").addClass("active")
+                    $("#tasting-write-off-mode-option").attr("selected","selected")
+                    //$(".order-container").css("bottom","426px");
+                    $("#paypad button").hide()
+                    $("#paypad button[data-tasting-method='true']").show()
+                    self.pos.get("selectedOrder").recalculateDiscount()
                     break;
             }
         },
-        saleButtonClicked:function() {
-            var self = this 
-            self.pos.get("selectedOrder").transaction_mode  = "normal" 
-            self.refreshForMode(self)
-
-        },
-        refundButtonClicked:function() {
-            var self = this
-            self.pos.get("selectedOrder").transaction_mode  = "refund" 
-            self.refreshForMode(self)
-        },
-        writeOnButtonClicked:function() {
-            var self = this
-            self.pos.get("selectedOrder").transaction_mode  = "w_on" 
-            self.refreshForMode(self)
-        },
-        writeOffButtonClicked:function() {
-            var self = this
-            self.pos.get("selectedOrder").transaction_mode  = "w_off" 
-            self.refreshForMode(self)
-
-        }, 
         // This method instantiates all the screens, widgets, etc. If you want to add new screens change the
         // startup screen, etc, override this method.
         build_widgets: function() {

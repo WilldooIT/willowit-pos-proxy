@@ -26,6 +26,7 @@ import logging
 import pdb
 import time
 
+from tools import DEFAULT_SERVER_DATE_FORMAT
 import openerp
 from openerp import netsvc, tools
 from openerp.osv import fields, osv
@@ -35,6 +36,19 @@ import openerp.addons.decimal_precision as dp
 import openerp.addons.product.product
 
 _logger = logging.getLogger(__name__)
+class pos_order_table(osv.osv):
+    _name = "pos.order.table"
+    _columns = {
+        "name":fields.char(size=24,string="Table name/Number")
+    }
+
+class pos_wine_glass(osv.osv):
+    _name = "pos.wine.glass"
+    _columns = {
+        "name":fields.char(size=64,string="Name"),
+        "volume":fields.integer(string="Volume (ml)"),
+    }
+
 
 class pos_config(osv.osv):
     _name = 'pos.config'
@@ -547,6 +561,7 @@ class pos_order(osv.osv):
         order_ids = []
         for tmp_order in orders:
             order = tmp_order['data']
+                    
             order_id = self.create(cr, uid, {
                 'name': order['name'],
                 'user_id': order['user_id'] or False,
@@ -1183,18 +1198,28 @@ class pos_order_line(osv.osv):
     def _amount_line_all(self, cr, uid, ids, field_names, arg, context=None):
         res = dict([(i, {}) for i in ids])
         account_tax_obj = self.pool.get('account.tax')
+        pricelist_obj = self.pool.get("product.pricelist")
+        irp_obj = self.pool.get("ir.property")
         cur_obj = self.pool.get('res.currency')
+
         for line in self.browse(cr, uid, ids, context=context):
             taxes = line.product_id.taxes_id
+            if line.glass_id:
+                qty = (line.glass_qty / (line.product_id.volume / line.glass_id.volume))
+            else:
+                qty = line.qty
             price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
             if line.line_type_code in ["W_ON","W_OFF"]:
-                taxes = account_tax_obj.compute_all(cr, uid, [], price, line.qty, product=line.product_id, partner=line.order_id.partner_id or False)
+                taxes = account_tax_obj.compute_all(cr, uid, [], price, qty, product=line.product_id, partner=line.order_id.partner_id or False)
             else:
-                taxes = account_tax_obj.compute_all(cr, uid, line.product_id.taxes_id, price, line.qty, product=line.product_id, partner=line.order_id.partner_id or False)
-
+                taxes = account_tax_obj.compute_all(cr, uid, line.product_id.taxes_id, price, qty, product=line.product_id, partner=line.order_id.partner_id or False)
             cur = line.order_id.pricelist_id.currency_id
-            res[line.id]['price_subtotal'] = cur_obj.round(cr, uid, cur, taxes['total'])
-            res[line.id]['price_subtotal_incl'] = cur_obj.round(cr, uid, cur, taxes['total_included'])
+            if line.glass_id:
+                res[line.id]['price_subtotal'] = round(cur_obj.round(cr, uid, cur, taxes['total']))
+                res[line.id]['price_subtotal_incl'] = cur_obj.round(cr, uid, cur, taxes['total_included'])
+            else:
+                res[line.id]['price_subtotal'] = cur_obj.round(cr, uid, cur, taxes['total'])
+                res[line.id]['price_subtotal_incl'] = cur_obj.round(cr, uid, cur, taxes['total_included'])
         return res
 
     def onchange_product_id(self, cr, uid, ids, pricelist, product_id, qty=0, partner_id=False, context=None):
@@ -1246,7 +1271,9 @@ class pos_order_line(osv.osv):
         'order_id': fields.many2one('pos.order', 'Order Ref', ondelete='cascade'),
         'create_date': fields.datetime('Creation Date', readonly=True),
         "line_type_code":fields.char(size=6,string="Type Code"),
-        "line_note":fields.char(size=256,string="Line note")
+        "line_note":fields.char(size=256,string="Line note"),
+        "glass_id":fields.many2one("pos.wine.glass",string="Wine Glass",readonly=True),
+        "glass_qty":fields.float(digits=(16,4),string="Glass Qty"),
     }
 
     _defaults = {

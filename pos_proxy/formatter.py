@@ -2,64 +2,6 @@ import sys
 import re
 from cStringIO import StringIO
 
-test = {u'cashier': u'POS User',
-                          u'change': 0,
-                          u'client': None,
-                          u'company': {u'company_registry': False,
-                                       u'contact_address': u'\n\n  \n',
-                                       u'email': False,
-                                       u'name': u'Premium Importers',
-                                       u'phone': "555-5555",
-                                       u'vat': False,
-                                       u'website': u'www.premiumimporters.com.sg'},
-                          u'currency': {u'id': 38,
-                                        u'position': u'after',
-                                        u'symbol': u'$'},
-                          u'date': {u'date': 25,
-                                    u'day': 5,
-                                    u'hour': 8,
-                                    u'minute': 43,
-                                    u'month': 0,
-                                    u'year': 2013},
-                          u'invoice_id': None,
-                          u'name': u'Order 1359063770780',
-                          u'orderlines': [{u'discount': 0,
-                                           u'price': 26.57,
-                                           u'price_with_tax': 28.4299,
-                                           u'price_without_tax': 26.57,
-                                           u'product_description': u'Colour: Brick Red\n\nAromatics: Black Plum, wild blackcurrant and soft soy sauce characters. Seasoned oak overtones.\n\nPalate: Dark current and red fruits are showing through here with hints of eucalypt and American oak.',
-                                           u'product_description_sale': u'Colour: Brick Red\n\nAromatics: Black Plum, wild blackcurrant and soft soy sauce characters. Seasoned oak overtones.\n\nPalate: Dark current and red fruit',
-                                           u'product_name': u'Genesis Barossa Shiraz',
-                                           u'quantity': 1,
-                                           u'tax': 1.8599000000000001,
-                                           u'unit_name': u'Unit(s)'},
-                                          {u'discount': 0,
-                                           u'price': 17.48,
-                                           u'price_with_tax': 18.703600000000002,
-                                           u'price_without_tax': 17.48,
-                                           u'product_description': u'A true vintage style sparkling made from hand picked and whole bunch pressed Pinot Noir followed by at least 5 years lees aging.',
-                                           u'product_description_sale': u'A true vintage style sparkling made from hand picked and whole bunch pressed Pinot Noir followed by at least 5 years lees aging.',
-                                           u'product_name': u' Cosham Methode Champenoise',
-                                           u'quantity': 1,
-                                           u'tax': 1.2236000000000002,
-                                           u'unit_name': u'Unit(s)'},
-                                          {u'discount': 0,
-                                           u'price': 19.57,
-                                           u'price_with_tax': 20.939900000000002,
-                                           u'price_without_tax': 19.57,
-                                           u'product_description': u'Pretty aroma of strawberries and  red cherries.\nThe palate displays a soft, creamy entry with flavours of strawberries and cream leading to the more savoury flavours of tart cherry and spice.  The palate has great intensity and length making this and excellent food wine.',
-                                           u'product_description_sale': u'Pretty aroma of strawberries and  red cherries.\nThe palate displays a soft, creamy entry with flavours of strawberries and cream leading to the more s',
-                                           u'product_name': u'Rowanston on the Track 2010 Sparkling Pinot',
-                                           u'quantity': 1,
-                                           u'tax': 1.3699000000000001,
-                                           u'unit_name': u'Unit(s)'}],
-                          u'paymentlines': [{u'amount': 68.073399999999992,
-                                             u'journal': u'POS Eftpos (SGD)'}],
-                          u'shop': {u'name': u'Premium Importers'},
-                          u'total_paid': 68.073399999999992,
-                          u'total_tax': 4.4534000000000002,
-                          u'total_with_tax': 68.073399999999992,
-                          u'total_without_tax': 63.619999999999997} 
 COL_WIDTH=42
 
 class Formatter():
@@ -127,17 +69,29 @@ class Formatter():
         #this function looks at the command (the first character) and 
         # lays out a line accordingly. Any symbols have already been expanded. 
         #Each command can have 0,1 or 2 arguments, separated by ::
-
+        EMPTY = ["","0","0.0",False,"false","False","null","None","undefined"]
         if len(style) > 0 and style[0] == "!":
             if line1 == "":
                 return ""
             else:
                 style = style[1:]
-        elif style == 'O':
-            if line2.strip() in ["","0","0.0",False,"false","False","null","None","undefined"]:
+        elif style in ['O','P','Q','U']:
+            if line2.strip() in EMPTY:
                 return ""
             else:
-                return self.center(line1) + self.nl()
+                if style == 'O':
+                    return self.center(line1) + self.nl()
+                if style == 'P':
+                    return self.right(line1) + self.nl()
+                if style == 'Q':
+                    return line1 + self.nl()
+                if style == 'U':
+                    return "\x1d!\x11\x1db\x01" + self.center(line1,col_width=self.col_width/2) + "\x1d!\x00" + self.nl()
+        elif style == '_':
+            if line1.strip() in EMPTY:
+                return ""
+            else:
+                return self.line() + self.nl()
         elif style == 'C':
             return self.center(line1) + self.nl()
         elif style == 'T':
@@ -212,8 +166,13 @@ class Formatter():
 
 
                     
-    def prepare_receipt_vals(self,receipt=test):
+    def prepare_receipt_vals(self,receipt):
         vals = {}
+        vals["is_reprint"] = receipt.get("is_reprint")  
+        vals["is_takeaway"] = receipt.get("is_takeaway")
+        vals["show_order_no"] = (receipt.get("is_takeaway") and True or False) or (receipt.get("table") and True or False)
+        vals["order_number"] = receipt.get("order_number")
+        vals["table"] = receipt.get("table") or ""
         vals["company_name"] = receipt["company"]["name"]
         vals["company_website"] = receipt["company"]["website"]
         vals["company_phone"] = receipt["company"]["phone"]
@@ -249,19 +208,20 @@ class Formatter():
         for l in receipt["paymentlines"]:
             line = {}
             line["journal"] = l["journal"]
-            if line["journal"] == "CASH (SGD)":
+            if line["journal"] == "CASH (SGD)" and not vals["is_reprint"]:
                 is_cash_sale = True           
             line["amount"] = "%.2f" % l["amount"]
             vals["payment_lines"].append(line)
         vals["is_refund"] = receipt["transaction_mode"] == "refund"
         vals["is_adjustment"] = receipt["transaction_mode"]  in ["w_on","w_off"]
+        vals["is_tasting"] = receipt["transaction_mode"]  == "tstng"
         vals["receipt_type"] = receipt["receipt_type"]
         vals["is_cash_sale"] = is_cash_sale 
         return vals
 
 
     def print_receipt(self,receipt):
-        return self.cook(cookbook=self.cookbook,recipe="receipt",vals=self.prepare_receipt_vals(receipt))
+        return self.cook(cookbook=self.cookbook,recipe="receipt",vals=receipt)
 
 
 

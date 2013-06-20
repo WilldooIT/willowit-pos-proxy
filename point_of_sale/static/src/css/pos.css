@@ -175,14 +175,18 @@
     background:  -ms-linear-gradient(#b2b3d7, #7f82ac);
     background:      linear-gradient(#b2b3d7, #7f82ac);
 }
-
+.select-label {
+	color:#ddd;
+}
+.select-wrapper {
+	display:block;
+	float:left;
+	margin:3px;
+}
 .point-of-sale #rightheader button.neworder-button {
-    width: 32px;
+    width: 72px;
     margin-left:4px;
     margin-right:4px;
-}
-#reason-button {
-    display:none;
 }
 #orderline_text {
 	font-size:18pt;
@@ -194,18 +198,29 @@
 }
 .point-of-sale div#order-selector {
     display: inline;
-}
+ }
 .point-of-sale ol#orders {
     display: inline;
 }
+
+
 .point-of-sale li.order-selector-button {
     display: inline;
 }
-.point-of-sale div#mode-selector {
-    display:inline;
-    width:150px;
+#rightheader button img {
+	height:44px;
+	width:44px;
 }
-#mode-selector button.active {
+.point-of-sale #mode-selector,#orders,#table-selector,#glass-selector {
+    display:inline;
+    width:135px;
+	font-size:18pt;
+	padding:5px;
+}
+#glass-selector-wrapper {
+	display: none;
+}
+button.active {
     color:#000;
     background-color: #c02c2c;
     background-image: -webkit-gradient(linear, left top, left bottom, from(#df3f3f), to(#a21a1a));
@@ -396,7 +411,7 @@
 
 .point-of-sale #rightpane header {
     padding: 0;
-    height: 32px;
+    height: 48px;
     border-bottom: 1px solid #c7c7c7;
     background: #d3d3d3;
     background: -moz-linear-gradient(white, #d3d3d3);
@@ -431,7 +446,7 @@
 .point-of-sale .breadcrumb li {
     float: left;
     line-height: 32px;
-    height: 32px;
+    height: 48px;
 }
 .point-of-sale .breadcrumb li:last-child {
     padding-right: 3px;
@@ -439,8 +454,8 @@
 }
 .point-of-sale .breadcrumb a {
     display: inline-block;
-    padding: 0 9px;
-    vertical-align: top;
+    padding: 9px 24px;
+    vertical-align: middle;
     text-shadow: #f7f7f7 0 1px 1px;
     color: #555555;
     font-weight: bold;
@@ -481,7 +496,7 @@
 
 .point-of-sale #categories {
     /*background:#f0f0f0;*/
-	height:auto;
+	height:70px;
     position: relative;
     background-image: url('../img/bg.png');
     border-bottom: 2px solid #e0e0e0;
@@ -1472,4 +1487,13 @@
     border-collapse: separate;
     box-shadow: 0px 3px 38px rgba(0,0,0,0.3);
     border-radius: 3px;
+}
+
+#takeaway-button {
+	height:45px;
+    width:45px;
+}
+#takeaway-wrapper {
+    margin-left:15px;
+    margin-right:15px;
 }
