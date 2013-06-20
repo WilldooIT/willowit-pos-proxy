@@ -23,7 +23,7 @@
 					</div>
 					<div class="select-wrapper">
 						<button class="neworder-button"><img src="/point_of_sale/static/src/img/FLOPPY.png" /></button>
-						<button class="void-button"><img src="/point_of_sale/static/src/img/BURN.png" /></button>
+						<button class="void-button"><img src="/point_of_sale/static/src/img/TRASH.png" /></button>
 						<button class="reprint-button"><img src="/point_of_sale/static/src/img/PRINTER.png" /></button>
                     </div>
                     <div class="select-wrapper" id="takeaway-wrapper">
