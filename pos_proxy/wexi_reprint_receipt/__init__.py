@@ -1,1 +1,0 @@
-import reprint_receipt

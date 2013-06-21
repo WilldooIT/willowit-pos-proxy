@@ -1,3 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_report_pos_order_wexi,report.pos.order.wexi,model_report_pos_order_wexi,point_of_sale.group_pos_user,1,1,1,1
-access_report_pos_payment_wexi,report.pos.payment.wexi,model_report_pos_payment_wexi,point_of_sale.group_pos_user,1,1,1,1
