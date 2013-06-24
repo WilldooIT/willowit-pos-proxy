@@ -27,7 +27,7 @@ Requests are dispatched based upon the request path.
 
         self.printers = {}
         for (p_name,printer) in self.config["printers"].iteritems():
-            printer["formatter"] = formatter.Formatter(cookbook,"receipt",printer["col_width"],printer["destination"])
+            printer["formatter"] = formatter.Formatter(cookbook,"receipt",printer["col_width"],printer["destination"],left_margin=printer.get("left_margin") or 0)
             active = printer["active"]
             try:
                 if active:
