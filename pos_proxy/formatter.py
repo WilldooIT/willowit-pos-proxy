@@ -81,7 +81,7 @@ class Formatter():
         # lays out a line accordingly. Any symbols have already been expanded. 
         #Each command can have 0,1 or 2 arguments, separated by ::
         EMPTY = ["","0","0.0",False,"false","False","null","None","undefined"]
-        elif style in ['O','P','Q','U']:
+        if style in ['O','P','Q','U']:
             if line2.strip() in EMPTY:
                 return ""
             else:
@@ -174,6 +174,7 @@ class Formatter():
                     
     def prepare_receipt_vals(self,receipt):
         vals = {}
+        vals["is_preprint"] = receipt.get("pre_print")
         vals["is_reprint"] = receipt.get("is_reprint")  
         vals["is_takeaway"] = receipt.get("is_takeaway")
         vals["show_order_no"] = (receipt.get("is_takeaway") and True or False) or (receipt.get("table") and True or False)
@@ -226,8 +227,8 @@ class Formatter():
         return vals
 
 
-    def print_receipt(self,receipt):
-        return self.cook(cookbook=self.cookbook,recipe="receipt",vals=receipt)
+    def print_receipt(self,receipt,recipe="receipt"):
+        return self.cook(cookbook=self.cookbook,recipe=recipe,vals=receipt)
 
 
 

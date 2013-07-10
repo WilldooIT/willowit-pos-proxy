@@ -33,11 +33,23 @@ Requests are dispatched based upon the request path.
                 if active:
                     predicate_str = printer.get("predicate")
                     if predicate_str:
-                        predicate = eval(printer["predicate"])
+                        predicate = eval(predicate_str)
                         if type(predicate) == type(lambda a:a):
                             printer["predicate"] = predicate
                         else:
                             raise ValueError("Predicate must be a function")
+                    recipe_str = printer.get("recipe_function")
+                    if recipe_str:
+                        recipe_function = eval(recipe_str)
+                        if type(recipe_function) == type(lambda a:a):
+                            printer["recipe_function"] = recipe_function
+                        elif type(recipe_function) == str:
+                            printer["recipe_function"] = lambda r: recipe_function
+                        else:
+                            printer["recipe_function"] = lambda r: self.config.get("default_recipe") or "receipt"
+                    else:
+                        printer["recipe_function"] = lambda r: self.config.get("default_recipe") or "receipt"
+
             except Exception as e:
                 print "Error with predicate, disabling printer %s" % p_name
                 print e
@@ -108,14 +120,15 @@ Requests are dispatched based upon the request path.
                 receipt["receipt_type"] = receipt_type
                 do_print = True
                 receipt_vals = printer["formatter"].prepare_receipt_vals(receipt)
+                recipe = printer["recipe_function"](receipt_vals)
                 if printer.get("predicate"):
                     predicate = printer["predicate"]
                     do_print = predicate(receipt_vals)
 
                 if do_print:
-                    output = printer["formatter"].print_receipt(receipt_vals)
+                    print "attempting to print to printer '%s' (%s) using recipe %s" % (p_name,receipt["receipt_type"],recipe)
+                    output = printer["formatter"].print_receipt(receipt_vals,recipe=recipe)
                     if printer["type"] == "local":
-                        print "attempting to print to printer '%s' (%s)" % (p_name,receipt["receipt_type"])
                         try:
                             printer_file = open(printer["device"],"w")
                             printer_file.write(output)
@@ -125,7 +138,6 @@ Requests are dispatched based upon the request path.
                         except Exception,e:
                             print e
                     elif printer["type"] == "network":
-                        print "attempting to print to printer '%s' (%s)" % (p_name,receipt["receipt_type"])
                         try:
                             s = socket()
                             s.settimeout(5.0)
