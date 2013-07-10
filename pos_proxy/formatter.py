@@ -1,12 +1,14 @@
 import sys
 import re
+import math
 from cStringIO import StringIO
 
 COL_WIDTH=42
 
 class Formatter():
-    def __init__(self,cookbook,default_recipe,col_width=COL_WIDTH,destination="printer"):
-        self.col_width = col_width
+    def __init__(self,cookbook,default_recipe,col_width=COL_WIDTH,destination="printer",left_margin=0):
+        self.left_margin = left_margin
+        self.col_width = col_width 
         self.default_recipe = default_recipe
         self.cookbook = self.prepare_cookbook(cookbook)
         self.destination = destination
@@ -44,8 +46,9 @@ class Formatter():
         if _truncate:
             line = self.truncate(line)
 
-        margin = pad_char * int((col_width - len(line))/2)
-        return margin + line + margin
+        margin = pad_char * int(math.floor((col_width - len(line))/2))
+        res = margin + line + margin
+        return res[:col_width]
 
     def right(self,line,col_width=None,_truncate=False,pad_char=" "):
         col_width = col_width or self.col_width
@@ -64,18 +67,21 @@ class Formatter():
             return lhs + self.nl() +  self.right(rhs)
         else:
             return lhs.strip() + self.right(rhs,col_width=col_width-len(lhs.strip()))
+        
+    def cookline(self,style="I",line1="",line2=""):
+        margin = " " * self.left_margin * 2
+        res =  self._cookline(style,line1,line2)
+        if style in ["I"] or res == "":
+            return res
+        else:
+            return margin + res
 
-    def cookline(self,style='I',line1="",line2=""):
+    def _cookline(self,style,line1,line2):
         #this function looks at the command (the first character) and 
         # lays out a line accordingly. Any symbols have already been expanded. 
         #Each command can have 0,1 or 2 arguments, separated by ::
         EMPTY = ["","0","0.0",False,"false","False","null","None","undefined"]
-        if len(style) > 0 and style[0] == "!":
-            if line1 == "":
-                return ""
-            else:
-                style = style[1:]
-        elif style in ['O','P','Q','U']:
+        if style in ['O','P','Q','U']:
             if line2.strip() in EMPTY:
                 return ""
             else:
@@ -168,6 +174,7 @@ class Formatter():
                     
     def prepare_receipt_vals(self,receipt):
         vals = {}
+        vals["is_preprint"] = receipt.get("pre_print")
         vals["is_reprint"] = receipt.get("is_reprint")  
         vals["is_takeaway"] = receipt.get("is_takeaway")
         vals["show_order_no"] = (receipt.get("is_takeaway") and True or False) or (receipt.get("table") and True or False)
@@ -220,8 +227,8 @@ class Formatter():
         return vals
 
 
-    def print_receipt(self,receipt):
-        return self.cook(cookbook=self.cookbook,recipe="receipt",vals=receipt)
+    def print_receipt(self,receipt,recipe="receipt"):
+        return self.cook(cookbook=self.cookbook,recipe=recipe,vals=receipt)
 
 
 
