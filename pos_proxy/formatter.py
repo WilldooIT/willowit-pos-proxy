@@ -2,6 +2,7 @@ import sys
 import re
 import math
 from cStringIO import StringIO
+import unidecode
 
 COL_WIDTH=42
 
@@ -154,7 +155,7 @@ class Formatter():
                         if sym == "@":
                             new_line += prefix + "@"
                         else:
-                            new_line += prefix + str(vals.get(sym,""))
+                            new_line += prefix + unicode(vals.get(sym,""))
                         line = suffix
                     else:
                         new_line += line
@@ -187,7 +188,7 @@ class Formatter():
         for l in receipt["orderlines"]:
             line = {}
             line["qty"] = l["quantity"]
-            line["name"] = self.truncate(l["product_name"].strip())
+            line["name"] = unidecode.unidecode(self.truncate(l["product_name"].strip()))
             line["unit"] = l["unit_name"]
             line["price_unit"] = "%.2f" % l["price"]
             line["line_subtotal"] = "%.2f" % l["price_without_tax"]

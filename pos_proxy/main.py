@@ -9,6 +9,8 @@ import formatter
 import shelve
 import datetime 
 import ast
+import traceback
+import unidecode
             
 class PosProxy:
     """
@@ -67,39 +69,44 @@ Requests are dispatched based upon the request path.
         """
         @Request.application
         def application(request):
-            if request.path == "/pos/print_receipt":
-                if request.method == "POST":
-                    r = request.form.get("r")
+            try:
+                if request.path == "/pos/print_receipt":
+                    if request.method == "POST":
+                        r = request.form.get("r")
+                        if not r:
+                            return Response("")
+                        rpccall = json.loads(r)
+                    elif request.method == "GET":
+                        r = request.args.get("r")
+                        if not r:
+                            return Response("")
+                        rpccall = json.loads(r)
+                    receipt = rpccall["params"]["receipt"]
+                    self.print_receipt(receipt)
+                    return Response("")
+                elif request.path == "/pos/reprint_receipt":
+                    r = request.args.get("receipt")
                     if not r:
-                        return Response("")
-                    rpccall = json.loads(r)
-                elif request.method == "GET":
-                    r = request.args.get("r")
-                    if not r:
-                        return Response("")
-                    rpccall = json.loads(r)
-                receipt = rpccall["params"]["receipt"]
-                self.print_receipt(receipt)
-                return Response("")
-            elif request.path == "/pos/reprint_receipt":
-                r = request.args.get("receipt")
-                if not r:
-                    print "Empty receipt"
-                    return Response("FAIL")
-                receipt = ast.literal_eval(r)
-                receipt["is_reprint"] = True
-                self.print_receipt(receipt)
-                return Response("OK")
-            elif request.path == "/pos/display_product":
-                #r = request.args.get("r")
-                #rpc_call = json.loads(r)
-                #name = rpc_call["params"]["name"]
-                #price = rpc_call["params"]["price"]
-                #discount = rpc_call["params"]["discount"]
-                #self.vfd_cook("vfd_item",{"name":name,"price":price,"discount":discount}) , 
-                return Response("")
-            else:
-                return Response("")
+                        print "Empty receipt"
+                        return Response("FAIL")
+                    receipt = ast.literal_eval(r)
+                    receipt["is_reprint"] = True
+                    self.print_receipt(receipt)
+                    return Response("OK")
+                elif request.path == "/pos/display_product":
+                    #r = request.args.get("r")
+                    #rpc_call = json.loads(r)
+                    #name = rpc_call["params"]["name"]
+                    #price = rpc_call["params"]["price"]
+                    #discount = rpc_call["params"]["discount"]
+                    #self.vfd_cook("vfd_item",{"name":name,"price":price,"discount":discount}) , 
+                    return Response("")
+                else:
+                    return Response("")
+            except Exception as e:
+                print "Error: %s\n" % e
+                print traceback.format_exc()
+
         run_simple("0.0.0.0",self.config["listen_port"],application)
     
 
@@ -128,6 +135,7 @@ Requests are dispatched based upon the request path.
                 if do_print:
                     print "attempting to print to printer '%s' (%s) using recipe %s" % (p_name,receipt["receipt_type"],recipe)
                     output = printer["formatter"].print_receipt(receipt_vals,recipe=recipe)
+                    output = unicode(output)
                     if printer["type"] == "local":
                         try:
                             printer_file = open(printer["device"],"w")
@@ -145,6 +153,7 @@ Requests are dispatched based upon the request path.
                             s.sendall(output)
                             s.close()
                         except Exception,e:
+                            print traceback.format_exc()
                             print e
                 else:
                     print "Did not print to %s, predicate was false" % p_name
