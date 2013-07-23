@@ -7,16 +7,18 @@ import pprint
 import json
 import formatter
 import shelve
-import datetime 
+import datetime
 import ast
 import traceback
 import unidecode
-            
+import logging
+
+
 class PosProxy:
     """
-The PosProxy class listens for jsonrpc calls from the openerp POS. 
+The PosProxy class listens for jsonrpc calls from the openerp POS.
 The main loop is the "application" function that is called upon an incoming request.
-Requests are dispatched based upon the request path. 
+Requests are dispatched based upon the request path.
     """
     config = {}
 
@@ -26,6 +28,28 @@ Requests are dispatched based upon the request path.
         """
         self.config = json.load(open("config.json"))
         cookbook = open(self.config["cookbook"]).read()
+
+        # logging message format
+        logging_formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+        # get a logger
+        self.logger = logging.getLogger("WEXI-POS-PROXY")
+        # read in log file from the configuration dictionary
+        if self.config.get("log_file", False):
+            # output logs to a file
+            handler = logging.FileHandler(self.config.get("log_file"))
+        else:
+            # output logs to stdout
+            handler = logging.StreamHandler()
+        handler.setFormatter(logging_formatter)
+        self.logger.addHandler(handler)
+        # read in logging level from the configuration dictionary
+        logging_level = self.config.get("logging", "info")
+        if logging_level == 'info':
+            self.logger.setLevel(logging.INFO)
+        elif logging_level == 'debug':
+            self.logger.setLevel(logging.DEBUG)
+        # first log
+        self.logger.info("Initialized successfully.")
 
         self.printers = {}
         for (p_name,printer) in self.config["printers"].iteritems():
@@ -53,10 +77,11 @@ Requests are dispatched based upon the request path.
                         printer["recipe_function"] = lambda r: self.config.get("default_recipe") or "receipt"
 
             except Exception as e:
-                print "Error with predicate, disabling printer %s" % p_name
-                print e
+                self.logger.error("Error with predicate, disabling printer %s" % p_name)
+                self.logger.error("%s" % e)
+                self.logger.error(traceback.format_exc())
                 active = False
-                
+
             if active:
                 self.printers[p_name] = printer
         self.vfd_formatter = formatter.Formatter(cookbook,"vfd_motd",self.config["vfd_col_width"],"vfd")
@@ -65,7 +90,7 @@ Requests are dispatched based upon the request path.
 
     def run(self):
         """
-        This is the main handler loop for incoming web requests. 
+        This is the main handler loop for incoming web requests.
         """
         @Request.application
         def application(request):
@@ -87,7 +112,8 @@ Requests are dispatched based upon the request path.
                 elif request.path == "/pos/reprint_receipt":
                     r = request.args.get("receipt")
                     if not r:
-                        print "Empty receipt"
+                        # print "Empty receipt"
+                        self.logger.info("Empty receipt")
                         return Response("FAIL")
                     receipt = ast.literal_eval(r)
                     receipt["is_reprint"] = True
@@ -99,23 +125,24 @@ Requests are dispatched based upon the request path.
                     #name = rpc_call["params"]["name"]
                     #price = rpc_call["params"]["price"]
                     #discount = rpc_call["params"]["discount"]
-                    #self.vfd_cook("vfd_item",{"name":name,"price":price,"discount":discount}) , 
+                    #self.vfd_cook("vfd_item",{"name":name,"price":price,"discount":discount}) ,
                     return Response("")
                 else:
                     return Response("")
             except Exception as e:
-                print "Error: %s\n" % e
-                print traceback.format_exc()
+                self.logger.error("%s" % e)
+                self.logger.error(traceback.format_exc())
 
         run_simple("0.0.0.0",self.config["listen_port"],application)
-    
 
-            
+
+
 
     def print_receipt(self,receipt):
         """
         Print a receipt to all of the active printers.
         """
+
         self._print_receipt(receipt)
         change = receipt["total_paid"] - receipt["total_with_tax"]
         self.vfd_change(change)
@@ -133,7 +160,7 @@ Requests are dispatched based upon the request path.
                     do_print = predicate(receipt_vals)
 
                 if do_print:
-                    print "attempting to print to printer '%s' (%s) using recipe %s" % (p_name,receipt["receipt_type"],recipe)
+                    self.logger.info("attempting to print to printer '%s' (%s) using recipe %s" % (p_name,receipt["receipt_type"], recipe["name"]))
                     output = printer["formatter"].print_receipt(receipt_vals,recipe=recipe)
                     output = unicode(output)
                     if printer["type"] == "local":
@@ -144,7 +171,9 @@ Requests are dispatched based upon the request path.
                             printer_file.close()
 
                         except Exception,e:
-                            print e
+                            self.logger.error("%s" % e)
+                            self.logger.error(traceback.format_exc())
+
                     elif printer["type"] == "network":
                         try:
                             s = socket()
@@ -153,10 +182,10 @@ Requests are dispatched based upon the request path.
                             s.sendall(output)
                             s.close()
                         except Exception,e:
-                            print traceback.format_exc()
-                            print e
+                            self.logger.error("%s" % e)
+                            self.logger.error(traceback.format_exc())
                 else:
-                    print "Did not print to %s, predicate was false" % p_name
+                    self.logger.info("Did not print to %s, predicate was false" % p_name)
 
     def vfd_display(self,line1="",line2=""):
         out = "\x1b\x40\x1f\x24\x01\x01%s\x1f\x24\x01%s" % (self.vfd_formatter.truncate(line1),
