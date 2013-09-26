@@ -141,15 +141,21 @@ class Formatter():
                     result = re.search("@[a-z0-9_@]+",line)
                     if result:
                         sym = line[result.start()+1:result.end()]
-                        if cmd[0] == "&" and sym in cookbook.keys():
+                        if cmd[0] == "&":
                             #if the command (the first char) is an ampersand, then we take the symbol that we found and 
-                            # apply the recipe from the cookbook with the symbols name to the value
-                            # in vals ( which needs to be a list of dictionaries). 
-                            new_line = [self.cook(cookbook,recipe=sym,vals=r_line) for r_line in  vals[sym]]
+                            # apply the recipe from the cookbook
+                            if len(cmd) == 3 and cmd[2].strip() and cmd[2].strip() in cookbook.keys():
+                                #A recipe for this line has been specified
+                                recipe_name = cmd[2].strip()
+                            elif sym in cookbook.keys():
+                                # We just use the symbol name if it exists in the cookbook as a recipe 
+                                recipe_name = sym
+                            new_line = [self.cook(cookbook,recipe=recipe_name,vals=r_line) for r_line in  vals[sym]]
                             new_line = reduce(lambda a,b: a + b,new_line,"")
                             new_lines.append(new_line)
                             done = True
                             break
+                            
                         prefix = line[:result.start()]
                         suffix = line[result.end():]
                         if sym == "@":
@@ -176,6 +182,7 @@ class Formatter():
     def prepare_receipt_vals(self,receipt):
         vals = {}
         vals["is_preprint"] = receipt.get("pre_print")
+        vals["kitchen_only"] = receipt.get("kitchen_only")
         vals["is_reprint"] = receipt.get("is_reprint")  
         vals["is_takeaway"] = receipt.get("is_takeaway")
         vals["show_order_no"] = (receipt.get("is_takeaway") and True or False) or (receipt.get("table") and True or False)
@@ -193,6 +200,8 @@ class Formatter():
             line["price_unit"] = "%.2f" % l["price"]
             line["line_subtotal"] = "%.2f" % l["price_without_tax"]
             line["discount"] = l["discount"]
+            line["is_wine"] = l["is_wine"]
+            line["is_not_wine"] = not l["is_wine"]
             vals["lines"].append(line)
         vals["date"] = "%0.2d/%0.2d/%0.4d %0.2d:%0.2d" %   (receipt["date"]["date"],
                                                     receipt["date"]["month"]+1,
