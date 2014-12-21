@@ -202,6 +202,8 @@ class Formatter():
             line["discount"] = l["discount"]
             line["is_wine"] = l["is_wine"]
             line["is_not_wine"] = not l["is_wine"]
+            line["service_charge"] = l.get("service_charge")
+            line["not_service_charge"] = not l.get("service_charge")
             vals["lines"].append(line)
         vals["date"] = "%0.2d/%0.2d/%0.4d %0.2d:%0.2d" %   (receipt["date"]["date"],
                                                     receipt["date"]["month"]+1,
