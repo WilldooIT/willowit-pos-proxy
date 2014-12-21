@@ -160,7 +160,7 @@ Requests are dispatched based upon the request path.
                     do_print = predicate(receipt_vals)
 
                 if do_print:
-                    self.logger.info("attempting to print to printer '%s' (%s) using recipe %s" % (p_name,receipt["receipt_type"], recipe["name"]))
+                    self.logger.info("attempting to print to printer '%s' (%s) using recipe %s" % (p_name,receipt["receipt_type"], recipe))
                     output = printer["formatter"].print_receipt(receipt_vals,recipe=recipe)
                     output = unicode(output)
                     if printer["type"] == "local":
